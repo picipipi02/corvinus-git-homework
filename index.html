@@ -202,6 +202,86 @@ document.addEventListener("DOMContentLoaded",()=>{
   pointer-events: none;
 }
 </style>
+
+<!-- WINX STYLE START -->
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fairy-pink: #f4a2cf;
+    --fairy-purple: #b88bea;
+    --fairy-green: #a6d9ad;
+    --fairy-ink: #744d83;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body, button, input, textarea, select, a, p, li, span {
+    font-family: "Nunito", sans-serif !important;
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  .title, .hero-title, .brand, .logo {
+    font-family: "Fredoka", sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: .01em !important;
+  }
+
+  h1, .hero h1 {
+    background: linear-gradient(
+      110deg, #e778b5, #ab83e9, #72bca3, #e778b5
+    );
+    background-size: 250% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fairyShimmer 7s ease-in-out infinite;
+  }
+
+  h2, h3 {
+    color: #a66bb4;
+  }
+
+  a.btn, .btn, button {
+    border-radius: 999px !important;
+    font-family: "Nunito", sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: .025em;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+
+  a.btn:hover, .btn:hover, button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(200, 121, 191, .25);
+  }
+
+  .btn.primary, a.btn.primary {
+    background: linear-gradient(115deg, #ed96c9, #ac8be5) !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,.7) !important;
+  }
+
+  .card, #projects article, #projects > div {
+    border-radius: 25px !important;
+  }
+
+  #projects h2 {
+    font-family: "Fredoka", sans-serif !important;
+    color: #b36abb !important;
+  }
+
+  @keyframes fairyShimmer {
+    0%, 100% { background-position: 0% center; }
+    50% { background-position: 100% center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    h1, .hero h1 { animation: none !important; }
+  }
+</style>
+<!-- WINX STYLE END -->
+
 </head>
 <body>
 <nav><div class="logo">MY<span>SPACE.</span></div><a href="https://github.com/picipipi02">GITHUB ↗</a></nav>
@@ -216,14 +296,10 @@ document.addEventListener("DOMContentLoaded",()=>{
 <h1>Building the<br><span class="gradient">Future.</span></h1>
 <p class="subtitle">Exploring the intersection of technology, artificial intelligence, and creativity. One project at a time.</p>
 <div class="buttons">
-<a class="btn primary" href="#" onclick="showProjects();return false">Explore My Work ↗</a>
+<a class="btn primary" href="#projects">Explore My Work ↗</a>
 <button onclick="showAI()">AI Playground ✨</button>
 </div>
-<div class="cards">
-<div class="card"><div class="symbol">⌘</div><h3>Development</h3><p>Turning ideas into real applications with code and modern technology.</p></div>
-<div class="card"><div class="symbol">✧</div><h3>Artificial Intelligence</h3><p>Exploring AI, automation, intelligent agents, and the future of software.</p></div>
-<div class="card"><div class="symbol">◈</div><h3>Innovation</h3><p>Experimenting, learning, and building something new every day.</p></div>
-</div>
+
 
 <!-- PERSONAL PROFILE START -->
 <section id="about-flora" style="
@@ -276,6 +352,48 @@ document.addEventListener("DOMContentLoaded",()=>{
 </section>
 <!-- PERSONAL PROFILE END -->
 
+
+
+
+<!-- FLORA PROJECTS V3 START -->
+<style id="flora-projects-style">
+#projects {max-width:900px;margin:68px auto 55px;padding:0 8px;scroll-margin-top:25px;text-align:center}
+#projects .fp-heading {font:600 clamp(32px,5vw,46px) Georgia,serif;color:#a76893;margin:0 0 12px}
+#projects .fp-sub {color:#846c83;margin:0 0 30px}
+#projects .fp-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:18px;text-align:left}
+#projects .fp-card {border-radius:22px;border:1px solid #f9d7e8;background:#fffafdde;box-shadow:0 10px 30px #b986a02e;padding:26px;display:flex;flex-direction:column;gap:12px}
+#projects .fp-tag {color:#ad6b9c;font-size:12px;letter-spacing:1px;font-weight:700}
+#projects .fp-card h3 {font:600 24px Georgia,serif;color:#94597d;margin:0}
+#projects .fp-card p {color:#785e75;font-size:14px;line-height:1.7;margin:0}
+#projects .fp-card a {align-self:flex-start;text-decoration:none;margin-top:auto;padding:12px 18px;border-radius:25px;background:linear-gradient(110deg,#d787b4,#b391d1);color:#fff;font-weight:700;font-size:13px}
+#projects .fp-note {color:#865b76;font-size:12px}
+</style>
+<section id="projects" aria-label="My projects">
+  <h2 class="fp-heading">My Projects</h2>
+  <p class="fp-sub">A collection of things I've built and explored.</p>
+  <div class="fp-grid">
+    <article class="fp-card">
+      <div class="fp-tag">01 · SUPPLY CHAIN</div>
+      <h3>Clothing Warehouse — 3D Layout</h3>
+      <p>An interactive 3D warehouse design showing receiving, storage racks, forklifts, conveyors and dispatch.</p>
+      <a href="warehouse-model.html" target="_blank" rel="noopener noreferrer">Open 3D Warehouse ↗</a>
+    </article>
+    <article class="fp-card">
+      <div class="fp-tag">02 · FINANCE</div>
+      <h3>Portfolio Rebalancing Calculator</h3>
+      <p>Calculate how to rebalance investment holdings toward target allocations using new cash or buys and sells.</p>
+      <a href="rebalancing-calculator.html" target="_blank" rel="noopener noreferrer">Open Calculator ↗</a>
+    </article>
+    <article class="fp-card">
+      <div class="fp-tag">03 · STUDY TOOLS</div>
+      <h3>Exam Builder</h3>
+      <p>Upload study PDFs, configure exam questions, and review answers in an interactive exam interface.</p>
+      <p class="fp-note">Note: AI question generation in this version requires Claude's app environment; it is not enabled on an ordinary website.</p>
+      <a href="exam-builder.html" target="_blank" rel="noopener noreferrer">Open Exam Builder ↗</a>
+    </article>
+  </div>
+</section>
+<!-- FLORA PROJECTS V3 END -->
 </main>
 <footer>© 2026 · Created with curiosity and code.</footer>
 <script>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rebalancing Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f5f1; --card:#ffffff; --ink:#1b1d1f; --muted:#6b6f76; --line:#e4e2dc;
+    --accent:#1f6f5c; --accent-soft:#e3f0ec; --warn:#b4561f; --warn-soft:#f8e9df; --sell:#a33a3a; --sell-soft:#f6e3e3;
+    --bar-now:#c9c6bd; --bar-target:#1b1d1f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#141516; --card:#1d1f21; --ink:#ecebe7; --muted:#9a9ea5; --line:#2e3134;
+      --accent:#5cc2a6; --accent-soft:#1d3a33; --warn:#e59a63; --warn-soft:#3a2a1e; --sell:#e27b7b; --sell-soft:#3a2222;
+      --bar-now:#4a4d51; --bar-target:#ecebe7; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;}
+  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 60px}
+  h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 14px;font-weight:600}
+  .controls{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+  label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);font-weight:500}
+  input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;min-width:0}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+  input.num{font-family:'JetBrains Mono',monospace;text-align:right}
+  .cash input{font-size:20px;width:220px;font-weight:500}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--muted);padding:9px 14px;cursor:pointer}
+  .seg button.on{background:var(--ink);color:var(--card)}
+  .check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);padding-bottom:9px}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:12px;color:var(--muted);font-weight:500;text-align:left;padding:0 6px 8px;border-bottom:1px solid var(--line)}
+  th.r,td.r{text-align:right}
+  td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  #holdings input{width:100%}
+  #holdings td:nth-child(1){width:34%}
+  .x{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;border-radius:6px}
+  .x:hover{background:var(--sell-soft);color:var(--sell)}
+  .rowbtns{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
+  .btn{font:inherit;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer}
+  .btn:hover{border-color:var(--ink)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tsum{margin-left:auto;font-size:13px;font-family:'JetBrains Mono',monospace}
+  .tsum.bad{color:var(--warn)}
+  .note{font-size:13px;color:var(--muted);margin-top:10px}
+  .banner{border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:14px}
+  .banner.warn{background:var(--warn-soft);color:var(--warn)}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+  .kpi{background:var(--bg);border-radius:10px;padding:12px 14px}
+  .kpi .l{font-size:12px;color:var(--muted)}
+  .kpi .v{font-size:20px;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:-.02em}
+  .mono{font-family:'JetBrains Mono',monospace;font-size:14px}
+  .action{font-weight:600}
+  .buy{color:var(--accent)} .sell{color:var(--sell)} .hold{color:var(--muted);font-weight:400}
+  .pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;font-weight:600}
+  .pill.buy{background:var(--accent-soft)} .pill.sell{background:var(--sell-soft)} .pill.hold{background:var(--bg)}
+  .bars{position:relative;height:10px;background:var(--bg);border-radius:99px;min-width:110px}
+  .bars .now{position:absolute;left:0;top:0;bottom:0;background:var(--bar-now);border-radius:99px}
+  .bars .after{position:absolute;left:0;top:3px;bottom:3px;background:var(--accent);border-radius:99px}
+  .bars .tgt{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--bar-target)}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:12px;flex-wrap:wrap}
+  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+  .drift{font-size:12px;font-family:'JetBrains Mono',monospace}
+  @media (max-width:680px){
+    .hide-sm{display:none}
+    .cash input{width:100%}
+    .controls>*{flex:1 1 100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Rebalancing calculator</h1>
+  <p class="sub">Enter what you hold and the mix you want. Add new cash and it tells you exactly what to buy to get back on target.</p>
+
+  <div class="card">
+    <h2>New cash</h2>
+    <div class="controls">
+      <label class="f cash">Amount to invest
+        <input id="cash" class="num" inputmode="decimal" value="200000">
+      </label>
+      <label class="f">Currency
+        <select id="ccy"><option>HUF</option><option>EUR</option><option>USD</option></select>
+      </label>
+      <label class="f">Mode
+        <div class="seg" id="mode">
+          <button data-m="buy" class="on">Buy only</button>
+          <button data-m="full">Buy &amp; sell</button>
+        </div>
+      </label>
+      <label class="check"><input type="checkbox" id="whole"> Whole shares only</label>
+    </div>
+    <p class="note" id="modeNote"></p>
+  </div>
+
+  <div class="card">
+    <h2>Holdings &amp; target mix</h2>
+    <table id="holdings">
+      <thead><tr>
+        <th>Holding</th>
+        <th class="r">Current value</th>
+        <th class="r">Target %</th>
+        <th class="r">Price / share <span class="hide-sm">(optional)</span></th>
+        <th></th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="rowbtns">
+      <button class="btn" id="add">+ Add holding</button>
+      <button class="btn" id="norm">Scale targets to 100%</button>
+      <button class="btn" id="reset">Reset example</button>
+      <span class="tsum" id="tsum"></span>
+    </div>
+    <p class="note">Values are market value today in the currency above. Add a share price to get unit counts. Your inputs stay in this browser only.</p>
+  </div>
+
+  <div class="card" id="results">
+    <h2>What to buy</h2>
+    <div id="warn"></div>
+    <div class="kpis" id="kpis"></div>
+    <table id="out">
+      <thead><tr>
+        <th>Holding</th>
+        <th class="r">Action</th>
+        <th class="r">Units</th>
+        <th class="r hide-sm">Now → after</th>
+        <th class="hide-sm">Mix</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="legend">
+      <span style="--c:var(--bar-now)">Current weight</span>
+      <span style="--c:var(--accent)">After trades</span>
+      <span style="--c:var(--bar-target)">Target</span>
+    </div>
+    <div class="rowbtns">
+      <button class="btn primary" id="copy">Copy order list</button>
+      <span class="note" id="copied" style="margin:0"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const EXAMPLE = [
+  {name:"Robo-Advisor Balanced Bundle", value:600000, target:50, price:""},
+  {name:"S&P 500 ETF (e.g. VUAA)",     value:150000, target:25, price:""},
+  {name:"Rheinmetall (RHM)",           value:250000, target:15, price:""},
+  {name:"Oracle (ORCL)",               value:200000, target:10, price:""},
+];
+const KEY = "rebal-calc-v1";
+let state = load() || {rows: structuredClone(EXAMPLE), cash:"200000", ccy:"HUF", mode:"buy", whole:false};
+
+function load(){ try{ const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+const $ = s => document.querySelector(s);
+const num = v => { const n = parseFloat(String(v).replace(/[\s,]/g,"").replace(/[^\d.\-]/g,"")); return isFinite(n) ? n : 0; };
+const fmt = (v, d=0) => v.toLocaleString("en-GB",{minimumFractionDigits:d, maximumFractionDigits:d}).replace(/,/g," ");
+const money = v => { const c = state.ccy, d = c==="HUF"?0:2; return fmt(v,d) + " " + c; };
+const pct = v => (v*100).toFixed(1) + "%";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function renderInputs(){
+  $("#cash").value = state.cash;
+  $("#ccy").value = state.ccy;
+  $("#whole").checked = state.whole;
+  document.querySelectorAll("#mode button").forEach(b => b.classList.toggle("on", b.dataset.m === state.mode));
+  $("#modeNote").textContent = state.mode === "buy"
+    ? "Buy only: never sells. New cash goes to the most underweight holdings first, so you avoid realising losses or triggering tax."
+    : "Buy & sell: lands exactly on target by selling overweight holdings too. Check tax and fees before selling.";
+  const tb = $("#holdings tbody");
+  tb.innerHTML = state.rows.map((r,i) => `
+    <tr>
+      <td><input data-i="${i}" data-k="name" value="${esc(r.name)}" placeholder="Name or ticker"></td>
+      <td><input data-i="${i}" data-k="value" class="num" inputmode="decimal" value="${esc(r.value)}"></td>
+      <td><input data-i="${i}" data-k="target" class="num" inputmode="decimal" value="${esc(r.target)}" style="max-width:90px;margin-left:auto;display:block"></td>
+      <td><input data-i="${i}" data-k="price" class="num" inputmode="decimal" value="${esc(r.price)}" placeholder="—"></td>
+      <td><button class="x" data-del="${i}" title="Remove">×</button></td>
+    </tr>`).join("");
+}
+
+function compute(){
+  const rows = state.rows.map(r => ({name:r.name||"Unnamed", cur:Math.max(0,num(r.value)), t:Math.max(0,num(r.target)), price:num(r.price)}));
+  const tSum = rows.reduce((a,r)=>a+r.t,0);
+  const cash = Math.max(0, num(state.cash));
+  const curTotal = rows.reduce((a,r)=>a+r.cur,0);
+  const total = curTotal + cash;
+  rows.forEach(r => r.w = tSum>0 ? r.t/tSum : 0);  // normalised target weight
+
+  if (state.mode === "full"){
+    rows.forEach(r => r.trade = r.w*total - r.cur);
+  } else {
+    // Water-fill: buy_i = max(0, λ·w_i − cur_i), find λ so Σbuy = cash.
+    // Every holding that receives cash ends at the same (value / target) ratio — the most underweight are topped up first.
+    const f = L => rows.reduce((a,r)=> a + Math.max(0, L*r.w - r.cur), 0);
+    let lo = 0, hi = 1;
+    while (f(hi) < cash && hi < 1e18) hi *= 2;
+    for (let k=0;k<200;k++){ const m=(lo+hi)/2; f(m) < cash ? lo=m : hi=m; }
+    rows.forEach(r => r.trade = r.w>0 ? Math.max(0, hi*r.w - r.cur) : 0);
+    const s = rows.reduce((a,r)=>a+r.trade,0);
+    if (s>0) rows.forEach(r => r.trade *= cash/s);  // remove binary-search residue
+  }
+
+  // Units
+  rows.forEach(r => { r.units = r.price>0 ? r.trade/r.price : null; });
+  let leftover = 0;
+  if (state.whole){
+    rows.forEach(r => {
+      if (r.price>0){
+        r.units = r.trade>=0 ? Math.floor(r.trade/r.price + 1e-9) : -Math.ceil(-r.trade/r.price - 1e-9);
+        r.trade = r.units*r.price;
+      }
+    });
+    const spent = rows.reduce((a,r)=>a+r.trade,0);
+    leftover = cash - spent;
+    // Greedy: spend leftover one share at a time on the holding furthest below target that still fits.
+    for (let guard=0; guard<10000; guard++){
+      const after = rows.map(r => r.cur + r.trade);
+      const tot = after.reduce((a,b)=>a+b,0) + leftover;
+      let best=-1, bestGap=-Infinity;
+      rows.forEach((r,i) => {
+        if (r.price>0 && r.price<=leftover+1e-9 && r.w>0){
+          const gap = r.w - after[i]/tot;
+          if (gap>bestGap){ bestGap=gap; best=i; }
+        }
+      });
+      if (best<0) break;
+      rows[best].units += 1; rows[best].trade += rows[best].price; leftover -= rows[best].price;
+    }
+  }
+
+  const afterTotal = rows.reduce((a,r)=>a+r.cur+r.trade,0);
+  rows.forEach(r => {
+    r.nowW = curTotal>0 ? r.cur/curTotal : 0;
+    r.afterW = afterTotal>0 ? (r.cur+r.trade)/afterTotal : 0;
+  });
+  const driftBefore = rows.reduce((a,r)=>a+Math.abs(r.nowW-r.w),0)/2;
+  const driftAfter  = rows.reduce((a,r)=>a+Math.abs(r.afterW-r.w),0)/2;
+  return {rows, tSum, cash, total, leftover, driftBefore, driftAfter};
+}
+
+let lastResult = null;
+function renderResults(){
+  const R = compute(); lastResult = R;
+  const ts = $("#tsum");
+  ts.textContent = "Targets sum: " + fmt(R.tSum,1) + "%";
+  ts.classList.toggle("bad", Math.abs(R.tSum-100) > 0.05);
+
+  let w = "";
+  if (R.tSum <= 0) w = "Set at least one target % above zero.";
+  else if (Math.abs(R.tSum-100) > 0.05) w = `Targets add up to ${fmt(R.tSum,1)}%, not 100%. They're being scaled proportionally — click “Scale targets to 100%” to make that explicit.`;
+  if (state.whole && R.rows.some(r => r.trade!==0 && !(r.price>0)) ) w += (w?" ":"") + "Some holdings have no price, so their amounts aren't rounded to whole shares.";
+  $("#warn").innerHTML = w ? `<div class="banner warn">${esc(w)}</div>` : "";
+
+  const buys = R.rows.reduce((a,r)=>a+Math.max(0,r.trade),0);
+  const sells = R.rows.reduce((a,r)=>a+Math.max(0,-r.trade),0);
+  $("#kpis").innerHTML = [
+    ["Portfolio after", money(R.total - (state.whole?R.leftover:0))],
+    ["Total to buy", money(buys)],
+    state.mode==="full" ? ["Total to sell", money(sells)] : ["Cash left over", money(state.whole?R.leftover:0)],
+    ["Off-target", pct(R.driftBefore) + " → " + pct(R.driftAfter)],
+  ].map(([l,v]) => `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
+
+  const maxW = Math.max(0.0001, ...R.rows.flatMap(r=>[r.nowW,r.afterW,r.w]));
+  const sc = v => (v/maxW*100).toFixed(2)+"%";
+  const sorted = [...R.rows].sort((a,b)=>Math.abs(b.trade)-Math.abs(a.trade));
+  $("#out tbody").innerHTML = sorted.map(r => {
+    const eps = state.ccy==="HUF" ? 0.5 : 0.005;
+    const kind = r.trade>eps ? "buy" : r.trade<-eps ? "sell" : "hold";
+    const label = kind==="hold" ? "—" : (kind==="buy"?"Buy ":"Sell ") + money(Math.abs(r.trade));
+    const units = r.units==null || kind==="hold" ? "—" : fmt(Math.abs(r.units), state.whole?0:4);
+    return `<tr>
+      <td>${esc(r.name)} <span class="pill ${kind}">${kind.toUpperCase()}</span></td>
+      <td class="r mono action ${kind}">${label}</td>
+      <td class="r mono">${units}</td>
+      <td class="r drift hide-sm">${pct(r.nowW)} → ${pct(r.afterW)} <span style="color:var(--muted)">/ ${pct(r.w)}</span></td>
+      <td class="hide-sm"><div class="bars">
+        <div class="now" style="width:${sc(r.nowW)}"></div>
+        <div class="after" style="width:${sc(r.afterW)}"></div>
+        <div class="tgt" style="left:${sc(r.w)}"></div>
+      </div></td>
+    </tr>`;
+  }).join("");
+}
+
+function update(){ save(); renderResults(); }
+
+// Events
+$("#holdings").addEventListener("input", e => {
+  const i = e.target.dataset.i, k = e.target.dataset.k;
+  if (i==null) return;
+  state.rows[i][k] = e.target.value; update();
+});
+$("#holdings").addEventListener("click", e => {
+  const d = e.target.dataset.del;
+  if (d==null) return;
+  state.rows.splice(+d,1); renderInputs(); update();
+});
+$("#add").onclick = () => { state.rows.push({name:"",value:"",target:"",price:""}); renderInputs(); update();
+  const ins = document.querySelectorAll('#holdings input[data-k="name"]'); ins[ins.length-1].focus(); };
+$("#norm").onclick = () => {
+  const s = state.rows.reduce((a,r)=>a+Math.max(0,num(r.target)),0); if (s<=0) return;
+  state.rows.forEach(r => r.target = String(+(Math.max(0,num(r.target))/s*100).toFixed(2)));
+  renderInputs(); update();
+};
+$("#reset").onclick = () => { state = {rows:structuredClone(EXAMPLE), cash:"200000", ccy:"HUF", mode:"buy", whole:false}; renderInputs(); update(); };
+$("#cash").addEventListener("input", e => { state.cash = e.target.value; update(); });
+$("#ccy").addEventListener("change", e => { state.ccy = e.target.value; update(); });
+$("#whole").addEventListener("change", e => { state.whole = e.target.checked; update(); });
+$("#mode").addEventListener("click", e => {
+  const m = e.target.dataset.m; if (!m) return;
+  state.mode = m; renderInputs(); update();
+});
+$("#copy").onclick = async () => {
+  const R = lastResult; if (!R) return;
+  const lines = R.rows.filter(r => Math.abs(r.trade) > (state.ccy==="HUF"?0.5:0.005)).sort((a,b)=>b.trade-a.trade).map(r => {
+    const u = r.units==null ? "" : ` (${fmt(Math.abs(r.units), state.whole?0:4)} units)`;
+    return `${r.trade>0?"BUY ":"SELL"} ${r.name}: ${money(Math.abs(r.trade))}${u}`;
+  });
+  const txt = lines.join("\n") || "No trades needed.";
+  try { await navigator.clipboard.writeText(txt); $("#copied").textContent = "Copied."; }
+  catch(e){ $("#copied").textContent = "Couldn't access clipboard — select the table instead."; }
+  setTimeout(()=>$("#copied").textContent="", 2500);
+};
+
+renderInputs(); renderResults();
+</script>
+</body>
+</html>

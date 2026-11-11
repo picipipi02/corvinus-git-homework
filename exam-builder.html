@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exam Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<style>
+:root{
+  --bg:#05050b; --card:rgba(12,12,26,.86); --ink:#d9f7ff; --muted:#7c8aa8; --line:#1f2a44;
+  --accent:#00f0ff; --accent-soft:rgba(0,240,255,.10); --mag:#ff2bd6; --yel:#f5ff3b;
+  --good:#39ff9c; --good-soft:rgba(57,255,156,.10); --bad:#ff3b6b; --bad-soft:rgba(255,59,107,.12);
+  --warn:#f5ff3b; --warn-soft:rgba(245,255,59,.08); --radius:0;
+  --cut:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));
+  --cut-s:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;color:var(--ink);font:14.5px/1.6 "JetBrains Mono",ui-monospace,monospace;min-height:100vh;
+  background:
+    radial-gradient(1200px 600px at 85% -10%,rgba(255,43,214,.18),transparent 60%),
+    radial-gradient(900px 500px at -10% 110%,rgba(0,240,255,.14),transparent 60%),
+    linear-gradient(rgba(0,240,255,.05) 1px,transparent 1px) 0 0/40px 40px,
+    linear-gradient(90deg,rgba(0,240,255,.05) 1px,transparent 1px) 0 0/40px 40px,
+    var(--bg);background-attachment:fixed}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+::selection{background:var(--mag);color:#000}
+.wrap{max-width:860px;margin:0 auto;padding:36px 20px 90px;position:relative;z-index:1}
+h1,h2,h3{font-family:Orbitron,"JetBrains Mono",sans-serif;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin:0}
+h1{font-size:40px;line-height:1.05;color:#fff;
+  text-shadow:0 0 12px rgba(0,240,255,.8),2px 0 0 var(--mag),-2px 0 0 var(--accent);animation:flick 6s infinite}
+h1 .sl{color:var(--mag);text-shadow:0 0 14px var(--mag)}
+h2{font-size:16px;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:10px;height:10px;background:var(--mag);box-shadow:0 0 10px var(--mag);clip-path:polygon(0 0,100% 50%,0 100%)}
+h3{font-size:15px;color:var(--accent)}
+@keyframes flick{0%,92%,100%{opacity:1}93%{opacity:.6}94%{opacity:1}96%{opacity:.75}}
+.kicker{font-size:11px;letter-spacing:.35em;color:var(--mag);text-transform:uppercase;margin-bottom:10px}
+.kicker::before{content:"▮ ";animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.sub{color:var(--muted);margin:10px 0 28px}
+.sub::before{content:"> ";color:var(--accent)}
+.card{background:var(--card);border:1px solid rgba(0,240,255,.35);padding:24px;margin-bottom:20px;position:relative;
+  clip-path:var(--cut);backdrop-filter:blur(6px);box-shadow:inset 0 0 40px rgba(0,240,255,.06)}
+.card::before{content:"";position:absolute;top:0;left:0;width:90px;height:2px;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.card::after{content:"";position:absolute;bottom:0;right:0;width:60px;height:2px;background:var(--mag);box-shadow:0 0 12px var(--mag)}
+.drop{border:1px dashed rgba(0,240,255,.5);padding:34px;text-align:center;cursor:pointer;transition:.15s;clip-path:var(--cut-s);background:rgba(0,240,255,.03)}
+.drop:hover,.drop.over{background:var(--accent-soft);border-color:var(--accent);box-shadow:inset 0 0 30px rgba(0,240,255,.25)}
+.drop strong{display:block;font-family:Orbitron,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-size:14px;margin-bottom:6px}
+.drop span{color:var(--muted);font-size:12.5px}
+.files{list-style:none;padding:0;margin:14px 0 0}
+.files li{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-left:3px solid var(--accent);margin-top:8px;font-size:13px;background:rgba(0,0,0,.35)}
+.files li .meta{color:var(--muted);font-size:12px;margin-left:auto}
+.files li.warnrow{border-left-color:var(--warn);background:var(--warn-soft)}
+.files li.warnrow .meta{color:var(--warn)}
+.x{border:0;background:none;color:var(--mag);cursor:pointer;font-size:18px;line-height:1;padding:0 4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:620px){.grid{grid-template-columns:1fr} h1{font-size:30px}}
+label.f{display:block;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+.hint{color:var(--muted);font-size:11px;letter-spacing:0;text-transform:none}
+input[type=number],input[type=text],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-bottom:1px solid var(--accent);background:rgba(0,0,0,.5);color:var(--ink);font:inherit;outline:none;border-radius:0}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px rgba(0,240,255,.35)}
+select option{background:#0b0b18}
+textarea{min-height:90px;resize:vertical}
+summary{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:7px 14px;border:1px solid var(--line);cursor:pointer;font-size:12.5px;user-select:none;clip-path:var(--cut-s);background:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.08em}
+.chip span::before{content:"[ ] ";color:var(--muted)}
+.chip input:checked+span{border-color:var(--mag);color:#fff;background:rgba(255,43,214,.16);box-shadow:inset 0 0 14px rgba(255,43,214,.35)}
+.chip input:checked+span::before{content:"[x] ";color:var(--mag)}
+.chip input:focus-visible+span{outline:1px solid var(--accent);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border:0;background:var(--accent);color:#001014;
+  font:700 13px Orbitron,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;clip-path:var(--cut-s);
+  box-shadow:0 0 22px rgba(0,240,255,.45);transition:.12s}
+.btn:hover:not(:disabled){background:#fff;box-shadow:0 0 30px rgba(0,240,255,.8)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.btn.ghost:hover:not(:disabled){background:var(--accent-soft);color:#fff}
+.btn.small{padding:8px 14px;font-size:11px}
+#genBtn{background:linear-gradient(90deg,var(--mag),var(--accent));color:#fff;text-shadow:0 0 6px rgba(0,0,0,.6);font-size:14px;padding:14px 28px}
+#genBtn:hover{filter:brightness(1.2)}
+#submitBtn{background:var(--mag);color:#fff;box-shadow:0 0 22px rgba(255,43,214,.55)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.notice{padding:12px 14px;font-size:13px;margin-bottom:16px;border-left:3px solid}
+.notice.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.notice.bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+.hidden{display:none!important}
+.progress{height:8px;background:rgba(0,240,255,.08);border:1px solid var(--line);overflow:hidden;margin:12px 0 8px}
+.progress i{display:block;height:100%;width:0;transition:width .4s;
+  background:repeating-linear-gradient(90deg,var(--accent) 0 10px,transparent 10px 13px);box-shadow:0 0 14px var(--accent)}
+.status{color:var(--muted);font-size:12.5px}
+#genStatus::before{content:"$ ";color:var(--good)}
+#genStatus::after{content:"_";animation:blink 1s steps(1) infinite;color:var(--accent)}
+.qtop{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}
+.tag{display:inline-block;padding:3px 10px;border:1px solid var(--mag);color:var(--mag);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+.qtext{font-size:17px;font-weight:500;color:#fff;margin:4px 0 20px;white-space:pre-wrap;font-family:Inter,system-ui,sans-serif}
+.opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--line);background:rgba(0,0,0,.45);color:var(--ink);font:14.5px Inter,system-ui,sans-serif;cursor:pointer;margin-bottom:9px;clip-path:var(--cut-s);transition:.1s}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft);transform:translateX(3px)}
+.opt .k{flex:none;width:26px;height:26px;border:1px solid var(--accent);color:var(--accent);display:grid;place-items:center;font:700 12px "JetBrains Mono",monospace}
+.opt.sel{border-color:var(--accent);background:rgba(0,240,255,.14);box-shadow:inset 3px 0 0 var(--accent)}
+.opt.sel .k{background:var(--accent);color:#001014;box-shadow:0 0 12px var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft);box-shadow:inset 3px 0 0 var(--good)}
+.opt.ok .k{border-color:var(--good);color:var(--good)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft);box-shadow:inset 3px 0 0 var(--bad)}
+.opt.no .k{border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{margin-top:12px;padding:12px 14px;font-size:13.5px;border-left:3px solid}
+.fb.ok{background:var(--good-soft);border-color:var(--good)} .fb.no{background:var(--bad-soft);border-color:var(--bad)} .fb.part{background:var(--warn-soft);border-color:var(--warn)}
+.fb b{display:block;margin-bottom:4px;font-family:Orbitron,sans-serif;letter-spacing:.14em;text-transform:uppercase;font-size:12px}
+.fb.ok b{color:var(--good)} .fb.no b{color:var(--bad)} .fb.part b{color:var(--warn)}
+.src{color:var(--muted);font-size:11.5px;margin-top:6px}
+.src::before{content:"// "}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.dot{width:32px;height:30px;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--muted);font:600 11px "JetBrains Mono",monospace;cursor:pointer}
+.dot.ans{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.dot.cur{outline:1px solid var(--mag);outline-offset:2px;color:#fff}
+.dot.flag{border-color:var(--yel);color:var(--yel);box-shadow:0 0 8px rgba(245,255,59,.5)}
+.timer{font:700 18px "JetBrains Mono",monospace;color:var(--accent);text-shadow:0 0 10px var(--accent);border:1px solid var(--accent);padding:4px 12px}
+.timer.low{color:var(--bad);border-color:var(--bad);text-shadow:0 0 10px var(--bad);animation:blink 1s steps(1) infinite}
+.score{font-family:Orbitron,sans-serif;font-size:72px;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 18px var(--accent),3px 0 0 var(--mag)}
+.scoreRow{display:flex;gap:32px;align-items:flex-end;flex-wrap:wrap}
+.stat{color:var(--muted);font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+.stat b{display:block;color:var(--accent);font:700 20px "JetBrains Mono",monospace;letter-spacing:0;text-transform:none}
+.review{border-top:1px dashed var(--line);padding:18px 0}
+.review:first-child{border-top:0}
+.ans-line{font-size:13.5px;margin-top:4px}
+.modal{position:fixed;inset:0;background:rgba(2,2,8,.8);display:grid;place-items:center;padding:20px;z-index:60;backdrop-filter:blur(3px)}
+.modal .card{max-width:440px;width:100%;border-color:var(--mag)}
+.spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .8s linear infinite;display:inline-block}
+#scorePct .spin{width:40px;height:40px;color:var(--accent)}
+@keyframes s{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Neural exam synthesis v2.6</div>
+    <h1>EXAM<span class="sl">//</span>BUILDER</h1>
+    <p class="sub">Upload your study PDFs, choose the format, and get an exam written from the material.</p>
+  </header>
+
+  <div id="noAI" class="notice warn hidden">Question generation needs Claude, which isn't available in this view. Open this page on claude.ai to generate exams. You can still take a saved exam.</div>
+
+  <!-- SETUP -->
+  <section id="setup">
+    <div class="card">
+      <h2>01 · Upload source data</h2>
+      <div id="drop" class="drop" tabindex="0" role="button" aria-label="Upload PDF files">
+        <strong>Drop PDFs here or click to browse</strong>
+        <span>Multiple files are fine. Text is read in your browser.</span>
+      </div>
+      <input id="fileInput" type="file" accept="application/pdf,.pdf,.txt,.md" multiple class="hidden">
+      <ul id="fileList" class="files"></ul>
+      <details style="margin-top:14px">
+        <summary class="hint" style="cursor:pointer">Or paste text instead</summary>
+        <textarea id="pasteText" placeholder="Paste notes or text here…" style="margin-top:8px"></textarea>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>02 · Configure exam</h2>
+      <div class="grid">
+        <div>
+          <label class="f" for="numQ">Number of questions <span class="hint">(1–60)</span></label>
+          <input id="numQ" type="number" min="1" max="60" value="15">
+        </div>
+        <div>
+          <label class="f" for="difficulty">Difficulty</label>
+          <select id="difficulty">
+            <option value="easy">Easy — recall of key facts</option>
+            <option value="medium" selected>Medium — understanding &amp; application</option>
+            <option value="hard">Hard — analysis, edge cases, synthesis</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1">
+          <label class="f">Question types</label>
+          <div class="chips" id="types">
+            <label class="chip"><input type="checkbox" value="mcq" checked><span>Multiple choice</span></label>
+            <label class="chip"><input type="checkbox" value="tf" checked><span>True / False</span></label>
+            <label class="chip"><input type="checkbox" value="short"><span>Short answer</span></label>
+          </div>
+        </div>
+        <div>
+          <label class="f" for="mode">Mode</label>
+          <select id="mode">
+            <option value="exam">Exam — results at the end</option>
+            <option value="practice">Practice — feedback after each question</option>
+          </select>
+        </div>
+        <div>
+          <label class="f" for="timer">Time limit <span class="hint">(minutes, 0 = none)</span></label>
+          <input id="timer" type="number" min="0" max="300" value="0">
+        </div>
+        <div>
+          <label class="f" for="lang">Exam language</label>
+          <select id="lang">
+            <option value="same as the source material">Same as the material</option>
+            <option value="English">English</option>
+            <option value="Hungarian">Hungarian</option>
+            <option value="German">German</option>
+          </select>
+        </div>
+        <div>
+          <label class="f" for="mcqOpts">Options per multiple-choice</label>
+          <select id="mcqOpts"><option>3</option><option selected>4</option><option>5</option></select>
+        </div>
+        <div style="grid-column:1/-1">
+          <label class="f" for="focus">Focus or instructions <span class="hint">(optional)</span></label>
+          <input id="focus" type="text" placeholder="e.g. focus on chapters 3–4, include formulas, skip dates">
+        </div>
+      </div>
+    </div>
+
+    <div id="setupErr" class="notice bad hidden"></div>
+    <div class="row">
+      <button id="genBtn" class="btn">▶ Generate exam</button>
+      <button id="resumeBtn" class="btn ghost hidden">Open last exam</button>
+      <span class="spacer"></span>
+      <span id="charInfo" class="status"></span>
+    </div>
+  </section>
+
+  <!-- GENERATING -->
+  <section id="gen" class="hidden">
+    <div class="card">
+      <h2>Synthesizing exam</h2>
+      <div class="progress"><i id="genBar"></i></div>
+      <div id="genStatus" class="status">Starting…</div>
+      <div class="row" style="margin-top:16px"><button id="cancelGen" class="btn ghost small">Cancel</button></div>
+    </div>
+  </section>
+
+  <!-- TAKING -->
+  <section id="take" class="hidden">
+    <div class="row" style="margin-bottom:12px">
+      <h2 id="examTitle" style="margin:0">Exam</h2>
+      <span class="spacer"></span>
+      <span id="timerEl" class="timer hidden"></span>
+    </div>
+    <div class="card">
+      <div class="qtop"><span id="qNum"></span><span id="qTag" class="tag"></span></div>
+      <div id="qText" class="qtext"></div>
+      <div id="qBody"></div>
+      <div id="qFb"></div>
+      <div class="row" style="margin-top:18px">
+        <button id="prevBtn" class="btn ghost small">← Previous</button>
+        <button id="flagBtn" class="btn ghost small">Flag</button>
+        <span class="spacer"></span>
+        <button id="checkBtn" class="btn small hidden">Check answer</button>
+        <button id="nextBtn" class="btn small">Next →</button>
+      </div>
+      <div id="dots" class="dots"></div>
+    </div>
+    <div class="row">
+      <button id="quitBtn" class="btn ghost small">Back to setup</button>
+      <span class="spacer"></span>
+      <button id="submitBtn" class="btn">Submit exam</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="hidden">
+    <div class="card">
+      <div class="scoreRow">
+        <div><div id="scorePct" class="score"></div><div class="stat">score</div></div>
+        <div class="stat"><b id="scoreRaw"></b>points</div>
+        <div class="stat"><b id="scoreTime"></b>time taken</div>
+        <div class="stat"><b id="scoreGrade"></b>grade</div>
+      </div>
+      <div id="gradeNote" class="status" style="margin-top:12px"></div>
+      <div class="row" style="margin-top:18px">
+        <button id="retakeBtn" class="btn small">Retake (shuffled)</button>
+        <button id="wrongBtn" class="btn ghost small">Retry missed only</button>
+        <button id="copyBtn" class="btn ghost small">Copy exam + key</button>
+        <button id="newBtn" class="btn ghost small">New exam</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Debrief</h2>
+      <div class="row" style="margin-bottom:6px">
+        <label class="chip"><input type="checkbox" id="onlyWrong"><span>Show only missed</span></label>
+      </div>
+      <div id="reviewList"></div>
+    </div>
+  </section>
+
+</div>
+
+<div id="modal" class="modal hidden"><div class="card"><h3 id="mTitle"></h3><p id="mText" class="status"></p><div class="row"><span class="spacer"></span><button id="mNo" class="btn ghost small">Cancel</button><button id="mYes" class="btn small">OK</button></div></div></div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const MAX_CHARS = 110000;
+const BATCH = 10;
+const TYPE_LABEL = {mcq:"Multiple choice", tf:"True / False", short:"Short answer"};
+
+let docs = [];          // {name, pages:[{n,text}], chars, warn}
+let sample = null;
+let exam = null;        // {title, questions:[], settings}
+let answers = {}, checked = {}, flags = {}, grades = {};
+let idx = 0, startTime = 0, timerInt = null, deadline = 0, abortCtl = null;
+
+// ---------- storage ----------
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+// ---------- claude ----------
+(async () => {
+  try { sample = window.claude && await window.claude.use("sample"); } catch(e){ sample = null; }
+  if (!sample) $("noAI").classList.remove("hidden");
+})();
+if (store.get("eb_last")) $("resumeBtn").classList.remove("hidden");
+
+// ---------- modal ----------
+function ask(title, text, okLabel="OK", cancel=true){
+  return new Promise(res => {
+    $("mTitle").textContent = title; $("mText").textContent = text;
+    $("mYes").textContent = okLabel; $("mNo").classList.toggle("hidden", !cancel);
+    $("modal").classList.remove("hidden");
+    const done = v => { $("modal").classList.add("hidden"); $("mYes").onclick = $("mNo").onclick = null; res(v); };
+    $("mYes").onclick = () => done(true); $("mNo").onclick = () => done(false);
+  });
+}
+
+// ---------- views ----------
+function show(id){ ["setup","gen","take","results"].forEach(s => $(s).classList.toggle("hidden", s!==id)); window.scrollTo(0,0); }
+
+// ---------- file handling ----------
+const drop = $("drop");
+drop.onclick = () => $("fileInput").click();
+drop.onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); $("fileInput").click(); } };
+drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); addFiles(e.dataTransfer.files); };
+$("fileInput").onchange = e => { addFiles(e.target.files); e.target.value=""; };
+$("pasteText").oninput = updateCharInfo;
+
+async function addFiles(list){
+  for (const f of list){
+    const entry = {name:f.name, pages:[], chars:0, loading:true};
+    docs.push(entry); renderFiles();
+    try{
+      if (/\.pdf$/i.test(f.name) || f.type==="application/pdf"){
+        if (!window.pdfjsLib) throw new Error("PDF reader failed to load");
+        const buf = await f.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+        for (let i=1;i<=pdf.numPages;i++){
+          const page = await pdf.getPage(i);
+          const tc = await page.getTextContent();
+          let text = "", lastY = null;
+          for (const it of tc.items){
+            const y = it.transform ? it.transform[5] : null;
+            if (lastY!==null && y!==null && Math.abs(y-lastY)>2) text += "\n"; else if (text && !text.endsWith(" ")) text += " ";
+            text += it.str; lastY = y;
+          }
+          text = text.replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim();
+          entry.pages.push({n:i, text});
+        }
+      } else {
+        entry.pages.push({n:1, text:(await f.text()).trim()});
+      }
+      entry.chars = entry.pages.reduce((a,p)=>a+p.text.length,0);
+      if (entry.chars < 200) entry.warn = "Little or no text found — this may be a scanned PDF.";
+    }catch(err){
+      entry.warn = "Could not read: " + (err.message||err);
+    }
+    entry.loading = false; renderFiles();
+  }
+}
+function renderFiles(){
+  const ul = $("fileList"); ul.innerHTML = "";
+  docs.forEach((d,i) => {
+    const li = document.createElement("li");
+    if (d.warn) li.className = "warnrow";
+    const name = document.createElement("span"); name.textContent = "📄 " + d.name;
+    const meta = document.createElement("span"); meta.className = "meta";
+    meta.textContent = d.loading ? "reading…" : (d.warn || `${d.pages.length} page${d.pages.length>1?"s":""} · ${Math.round(d.chars/1000)}k chars`);
+    const x = document.createElement("button"); x.className="x"; x.textContent="×"; x.title="Remove";
+    x.onclick = () => { docs.splice(i,1); renderFiles(); };
+    li.append(name, meta, x); ul.append(li);
+  });
+  updateCharInfo();
+}
+function updateCharInfo(){
+  const total = docs.reduce((a,d)=>a+d.chars,0) + $("pasteText").value.trim().length;
+  $("charInfo").textContent = total ? `${Math.round(total/1000)}k characters of material` + (total>MAX_CHARS ? " · will be sampled evenly" : "") : "";
+}
+
+// Build material string, sampling evenly if too long
+function buildMaterial(){
+  const units = [];
+  docs.forEach(d => d.pages.forEach(p => { if (p.text) units.push({label:`${d.name}, p.${p.n}`, text:p.text}); }));
+  const pasted = $("pasteText").value.trim();
+  if (pasted) units.push({label:"Pasted notes", text:pasted});
+  const total = units.reduce((a,u)=>a+u.text.length,0);
+  const ratio = total > MAX_CHARS ? MAX_CHARS/total : 1;
+  return units.map(u => {
+    const t = ratio<1 ? u.text.slice(0, Math.max(200, Math.floor(u.text.length*ratio))) : u.text;
+    return `[[${u.label}]]\n${t}`;
+  }).join("\n\n");
+}
+
+// ---------- generation ----------
+function settings(){
+  const types = [...document.querySelectorAll("#types input:checked")].map(i=>i.value);
+  return {
+    n: Math.max(1, Math.min(60, parseInt($("numQ").value)||10)),
+    types, difficulty:$("difficulty").value, mode:$("mode").value,
+    timer: Math.max(0, parseInt($("timer").value)||0), lang:$("lang").value,
+    opts: parseInt($("mcqOpts").value), focus:$("focus").value.trim()
+  };
+}
+function splitCounts(n, types){
+  const c = {}; types.forEach(t=>c[t]=Math.floor(n/types.length));
+  let r = n - types.length*Math.floor(n/types.length);
+  for (let i=0;r>0;i++,r--) c[types[i%types.length]]++;
+  return c;
+}
+function extractJSON(text){
+  const s = text.indexOf("["), e = text.lastIndexOf("]");
+  if (s<0||e<0) throw new Error("No JSON in response");
+  return JSON.parse(text.slice(s,e+1));
+}
+function validQ(q, st){
+  if (!q || typeof q.question!=="string" || !q.question.trim()) return false;
+  if (q.type==="mcq") return Array.isArray(q.options) && q.options.length>=2 && Number.isInteger(q.answer) && q.answer>=0 && q.answer<q.options.length;
+  if (q.type==="tf") { if (typeof q.answer==="string") q.answer = q.answer.toLowerCase()==="true"; return typeof q.answer==="boolean"; }
+  if (q.type==="short") return typeof q.answer==="string" && q.answer.trim();
+  return false;
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function shuffleOptions(q){
+  if (q.type!=="mcq") return q;
+  const correct = q.options[q.answer];
+  const opts = shuffle(q.options.slice());
+  return {...q, options:opts, answer:opts.indexOf(correct)};
+}
+
+$("genBtn").onclick = async () => {
+  const err = $("setupErr"); err.classList.add("hidden");
+  const st = settings();
+  const fail = m => { err.textContent = m; err.classList.remove("hidden"); };
+  if (!sample) return fail("Claude isn't available in this view, so questions can't be generated here. Open the page on claude.ai.");
+  if (docs.some(d=>d.loading)) return fail("Still reading your files — try again in a moment.");
+  const material = buildMaterial();
+  if (material.replace(/\[\[.*?\]\]/g,"").trim().length < 100) return fail("Add a PDF with readable text (or paste some text) first.");
+  if (!st.types.length) return fail("Pick at least one question type.");
+
+  show("gen"); abortCtl = new AbortController();
+  const counts = splitCounts(st.n, st.types);
+  const batches = Math.ceil(st.n / BATCH);
+  const questions = [];
+  const remaining = {...counts};
+  try{
+    for (let b=0; b<batches; b++){
+      const size = Math.min(BATCH, st.n - questions.length);
+      // choose type mix for this batch
+      const bc = {}; let left = size;
+      const keys = st.types.slice();
+      while (left>0){
+        let progressed=false;
+        for (const t of keys){ if (left>0 && remaining[t]>0){ bc[t]=(bc[t]||0)+1; remaining[t]--; left--; progressed=true; } }
+        if (!progressed) break;
+      }
+      const mix = Object.entries(bc).map(([t,c])=>`${c} ${TYPE_LABEL[t]}`).join(", ");
+      $("genStatus").textContent = `Batch ${b+1} of ${batches}: writing ${mix}…`;
+      $("genBar").style.width = `${Math.round((b/batches)*100)+4}%`;
+
+      const avoid = questions.length ? `\nAlready-written questions (do NOT repeat or closely paraphrase these; cover different content):\n${questions.map((q,i)=>`${i+1}. ${q.question}`).join("\n")}\n` : "";
+      const prompt =
+`You are an expert examiner. Write exam questions strictly based on the study material below.
+
+Requirements:
+- Exactly this mix: ${mix}.
+- Difficulty: ${st.difficulty}${st.difficulty==="mixed"?" (spread easy/medium/hard)":""}.
+- Language of questions, options and explanations: ${st.lang}.
+- Multiple choice: exactly ${st.opts} options, one correct, plausible distractors, no "all/none of the above".
+- True/False: a clear statement that is unambiguously true or false according to the material; aim for a mix of true and false.
+- Short answer: answerable in 1–3 sentences; give a concise model answer.
+- Spread questions across the whole material, not just the start. Test meaningful concepts, not trivia like page numbers.
+- Each question must be answerable from the material alone.
+${st.focus ? `- Additional instructions from the student: ${st.focus}\n` : ""}${avoid}
+Return ONLY a JSON array, no prose, no code fences. Each item:
+{"type":"mcq"|"tf"|"short","question":string,"options":[strings] (mcq only),"answer": index of correct option (mcq) | true/false (tf) | model answer string (short),"explanation":"1–2 sentences why","source":"document name and page, from the [[...]] labels","topic":"2–4 word topic"}
+
+STUDY MATERIAL:
+${material}`;
+
+      let got = [];
+      for (let attempt=0; attempt<2 && got.length===0; attempt++){
+        const res = await sample(prompt, {signal:abortCtl.signal, modelTier:"default", cache:false});
+        try { got = extractJSON(res.text).filter(q=>validQ(q,st)); } catch(e){ got = []; }
+      }
+      if (!got.length) throw new Error("Claude returned questions in an unexpected format. Try again.");
+      got.slice(0,size).forEach(q => questions.push(shuffleOptions(q)));
+    }
+  }catch(e){
+    show("setup");
+    if (e && e.name==="AbortError") return;
+    const code = e && e.code;
+    fail(code==="not_granted" ? "Permission to use Claude was declined. Allow it to generate questions."
+       : code==="rate_limited" ? "Rate limit reached. Wait a minute and try again."
+       : "Generation failed: " + (e.message||e));
+    return;
+  }
+  $("genBar").style.width = "100%";
+  const names = docs.map(d=>d.name.replace(/\.[^.]+$/,""));
+  exam = {title: names.length ? names.slice(0,2).join(" + ") + (names.length>2?` +${names.length-2}`:"") : "Exam", questions, settings:st, created:Date.now()};
+  store.set("eb_last", exam);
+  $("resumeBtn").classList.remove("hidden");
+  startExam(questions);
+};
+$("cancelGen").onclick = () => { if (abortCtl) abortCtl.abort(); show("setup"); };
+$("resumeBtn").onclick = () => { const e = store.get("eb_last"); if (e){ exam = e; startExam(e.questions.map(shuffleOptions)); } };
+
+// ---------- taking ----------
+let qs = [];
+function startExam(list){
+  qs = list.map((q,i)=>({...q, id:i}));
+  answers = {}; checked = {}; flags = {}; grades = {}; idx = 0;
+  $("examTitle").textContent = exam.title;
+  startTime = Date.now();
+  clearInterval(timerInt);
+  const t = exam.settings.timer;
+  if (t>0){
+    deadline = startTime + t*60000;
+    $("timerEl").classList.remove("hidden");
+    const tick = () => {
+      const ms = deadline - Date.now();
+      if (ms<=0){ clearInterval(timerInt); $("timerEl").textContent="0:00"; finish(true); return; }
+      const m = Math.floor(ms/60000), s = Math.floor(ms/1000)%60;
+      $("timerEl").textContent = `⏱ ${m}:${String(s).padStart(2,"0")}`;
+      $("timerEl").classList.toggle("low", ms<60000);
+    };
+    tick(); timerInt = setInterval(tick, 1000);
+  } else $("timerEl").classList.add("hidden");
+  show("take"); renderQ();
+}
+const practice = () => exam.settings.mode==="practice";
+function renderQ(){
+  const q = qs[idx];
+  $("qNum").textContent = `Question ${idx+1} of ${qs.length}`;
+  $("qTag").textContent = TYPE_LABEL[q.type] + (q.topic ? " · " + q.topic : "");
+  $("qText").textContent = q.question;
+  const body = $("qBody"); body.innerHTML = ""; $("qFb").innerHTML = "";
+  const locked = practice() && checked[q.id];
+  if (q.type==="mcq" || q.type==="tf"){
+    const opts = q.type==="mcq" ? q.options : ["True","False"];
+    opts.forEach((o,i) => {
+      const val = q.type==="mcq" ? i : (i===0);
+      const b = document.createElement("button"); b.className = "opt";
+      const k = document.createElement("span"); k.className="k"; k.textContent = q.type==="mcq" ? "ABCDE"[i] : (i===0?"T":"F");
+      const t = document.createElement("span"); t.textContent = o;
+      b.append(k,t);
+      if (answers[q.id]===val) b.classList.add("sel");
+      if (locked){
+        b.disabled = true;
+        if (val===q.answer) b.classList.add("ok"); else if (answers[q.id]===val) b.classList.add("no");
+      }
+      b.onclick = () => { answers[q.id] = val; renderQ(); };
+      body.append(b);
+    });
+  } else {
+    const ta = document.createElement("textarea"); ta.placeholder = "Type your answer…";
+    ta.value = answers[q.id] || ""; ta.disabled = locked;
+    ta.oninput = () => { answers[q.id] = ta.value; renderDots(); };
+    body.append(ta);
+  }
+  if (locked) $("qFb").append(feedbackEl(q));
+  $("checkBtn").classList.toggle("hidden", !practice() || locked);
+  $("prevBtn").disabled = idx===0;
+  $("nextBtn").textContent = idx===qs.length-1 ? "Finish →" : "Next →";
+  $("flagBtn").textContent = flags[q.id] ? "Unflag" : "Flag";
+  renderDots();
+}
+function hasAnswer(id){ const a = answers[id]; return a!==undefined && a!==null && !(typeof a==="string" && !a.trim()); }
+function renderDots(){
+  const d = $("dots"); d.innerHTML = "";
+  qs.forEach((q,i) => {
+    const b = document.createElement("button"); b.className = "dot"; b.textContent = i+1;
+    if (hasAnswer(q.id)) b.classList.add("ans");
+    if (flags[q.id]) b.classList.add("flag");
+    if (i===idx) b.classList.add("cur");
+    b.onclick = () => { idx = i; renderQ(); };
+    d.append(b);
+  });
+}
+$("prevBtn").onclick = () => { if (idx>0){ idx--; renderQ(); } };
+$("nextBtn").onclick = () => { if (idx<qs.length-1){ idx++; renderQ(); } else $("submitBtn").click(); };
+$("flagBtn").onclick = () => { const id = qs[idx].id; flags[id] = !flags[id]; renderQ(); };
+$("checkBtn").onclick = async () => {
+  const q = qs[idx];
+  if (!hasAnswer(q.id)) return;
+  if (q.type==="short"){
+    $("checkBtn").disabled = true; $("checkBtn").innerHTML = '<span class="spin"></span> Grading';
+    await gradeShort([q]);
+    $("checkBtn").disabled = false; $("checkBtn").textContent = "Check answer";
+  }
+  checked[q.id] = true; renderQ();
+};
+$("quitBtn").onclick = async () => { if (await ask("Leave this exam?","Your answers will be lost. The exam itself stays saved under “Open last exam”.","Leave")){ clearInterval(timerInt); show("setup"); } };
+$("submitBtn").onclick = async () => {
+  const un = qs.filter(q=>!hasAnswer(q.id)).length;
+  if (un && !(await ask("Submit exam?", `${un} question${un>1?"s are":" is"} unanswered and will count as wrong.`, "Submit"))) return;
+  finish(false);
+};
+
+// ---------- grading ----------
+function isCorrect(q){
+  if (q.type==="short") return grades[q.id] ? grades[q.id].score : 0;
+  return answers[q.id]===q.answer ? 1 : 0;
+}
+async function gradeShort(list){
+  const todo = list.filter(q => q.type==="short" && hasAnswer(q.id) && !grades[q.id]);
+  list.filter(q=>q.type==="short" && !hasAnswer(q.id)).forEach(q => grades[q.id] = {score:0, feedback:"No answer given."});
+  if (!todo.length) return;
+  if (!sample){ todo.forEach(q => grades[q.id] = {score:null, feedback:"Compare with the model answer and judge yourself."}); return; }
+  const prompt =
+`Grade these short exam answers against the model answers. Be fair: accept answers that capture the key idea in different words; give 0.5 for partially correct answers.
+Write feedback in ${exam.settings.lang==="same as the source material" ? "the same language as the question" : exam.settings.lang}, one short sentence each.
+Return ONLY a JSON array: [{"id":number,"score":0|0.5|1,"feedback":string}]
+
+${todo.map(q=>`id: ${q.id}\nQuestion: ${q.question}\nModel answer: ${q.answer}\nStudent answer: ${answers[q.id]}`).join("\n\n")}`;
+  try{
+    const res = await sample(prompt, {modelTier:"quick", cache:false});
+    const arr = extractJSON(res.text);
+    arr.forEach(g => { if (todo.some(q=>q.id===g.id)) grades[g.id] = {score:[0,0.5,1].includes(g.score)?g.score:0, feedback:String(g.feedback||"")}; });
+  }catch(e){}
+  todo.forEach(q => { if (!grades[q.id]) grades[q.id] = {score:null, feedback:"Automatic grading failed — compare with the model answer."}; });
+}
+function feedbackEl(q){
+  const s = isCorrect(q), g = grades[q.id];
+  const div = document.createElement("div");
+  const selfGrade = q.type==="short" && g && g.score===null;
+  div.className = "fb " + (selfGrade ? "part" : s===1 ? "ok" : s>0 ? "part" : "no");
+  const head = document.createElement("b");
+  head.textContent = selfGrade ? "Mark yourself" : s===1 ? "Correct" : s>0 ? "Partly correct" : "Incorrect";
+  div.append(head);
+  if (q.type!=="mcq" || s!==1){
+    const a = document.createElement("div"); a.className="ans-line";
+    a.textContent = (q.type==="short" ? "Model answer: " : "Correct answer: ") + answerText(q, q.answer);
+    div.append(a);
+  }
+  if (g && g.feedback && !selfGrade){ const f = document.createElement("div"); f.className="ans-line"; f.textContent = g.feedback; div.append(f); }
+  if (q.explanation){ const e = document.createElement("div"); e.className="ans-line"; e.style.marginTop="6px"; e.textContent = q.explanation; div.append(e); }
+  if (q.source){ const s2 = document.createElement("div"); s2.className="src"; s2.textContent = "Source: " + q.source; div.append(s2); }
+  if (selfGrade){
+    const r = document.createElement("div"); r.className="row"; r.style.marginTop="8px";
+    [["I got it",1],["Partly",0.5],["Missed it",0]].forEach(([l,v]) => {
+      const b = document.createElement("button"); b.className="btn ghost small"; b.textContent=l;
+      b.onclick = () => { grades[q.id] = {score:v, feedback:""}; if (!$("results").classList.contains("hidden")) renderResults(); else renderQ(); };
+      r.append(b);
+    });
+    div.append(r);
+  }
+  return div;
+}
+function answerText(q, a){
+  if (a===undefined || a===null || a==="") return "—";
+  if (q.type==="mcq") return `${"ABCDE"[a]}. ${q.options[a]}`;
+  if (q.type==="tf") return a ? "True" : "False";
+  return String(a);
+}
+let elapsed = 0;
+async function finish(timeUp){
+  clearInterval(timerInt);
+  elapsed = Date.now() - startTime;
+  show("results");
+  $("scorePct").innerHTML = '<span class="spin"></span>';
+  $("gradeNote").textContent = timeUp ? "Time's up — exam submitted automatically." : "";
+  if (qs.some(q=>q.type==="short")) { $("gradeNote").textContent += " Grading short answers…"; await gradeShort(qs); }
+  renderResults(timeUp);
+}
+function renderResults(timeUp){
+  const total = qs.length;
+  const pts = qs.reduce((a,q)=>a+(isCorrect(q)||0),0);
+  const pct = Math.round(pts/total*100);
+  $("scorePct").textContent = pct + "%";
+  $("scoreRaw").textContent = `${+pts.toFixed(1)} / ${total}`;
+  const m = Math.floor(elapsed/60000), s = Math.floor(elapsed/1000)%60;
+  $("scoreTime").textContent = `${m}m ${s}s`;
+  $("scoreGrade").textContent = pct>=90?"5 (excellent)":pct>=80?"4 (good)":pct>=65?"3 (satisfactory)":pct>=50?"2 (pass)":"1 (fail)";
+  const pending = qs.filter(q=>grades[q.id] && grades[q.id].score===null).length;
+  $("gradeNote").textContent = (timeUp ? "Time's up — exam submitted automatically. " : "") + (pending ? `${pending} short answer${pending>1?"s":""} need self-marking below.` : "");
+  // topic summary
+  const topics = {};
+  qs.forEach(q => { const t = q.topic||"General"; topics[t] = topics[t]||{p:0,n:0}; topics[t].p += isCorrect(q)||0; topics[t].n++; });
+  const weak = Object.entries(topics).filter(([,v])=>v.p/v.n<0.6).map(([k])=>k);
+  if (weak.length) $("gradeNote").textContent += ` Topics to revisit: ${weak.slice(0,6).join(", ")}.`;
+  renderReview();
+}
+function renderReview(){
+  const only = $("onlyWrong").checked;
+  const list = $("reviewList"); list.innerHTML = "";
+  qs.forEach((q,i) => {
+    if (only && isCorrect(q)===1) return;
+    const r = document.createElement("div"); r.className = "review";
+    const top = document.createElement("div"); top.className="qtop";
+    const n = document.createElement("span"); n.textContent = `Question ${i+1}`;
+    const t = document.createElement("span"); t.className="tag"; t.textContent = TYPE_LABEL[q.type] + (q.topic?" · "+q.topic:"");
+    top.append(n,t);
+    const qt = document.createElement("div"); qt.className="qtext"; qt.style.fontSize="15.5px"; qt.style.marginBottom="8px"; qt.textContent = q.question;
+    const ya = document.createElement("div"); ya.className="ans-line"; ya.textContent = "Your answer: " + answerText(q, answers[q.id]);
+    r.append(top, qt, ya, feedbackEl(q));
+    list.append(r);
+  });
+  if (!list.children.length) list.innerHTML = '<p class="status">Nothing missed — well done.</p>';
+}
+$("onlyWrong").onchange = renderReview;
+$("retakeBtn").onclick = () => startExam(shuffle(exam.questions.map(shuffleOptions)));
+$("wrongBtn").onclick = () => {
+  const missed = qs.filter(q=>isCorrect(q)!==1).map(({id,...q})=>q);
+  if (!missed.length) return ask("Nothing to retry","You got everything right.","OK",false);
+  startExam(shuffle(missed.map(shuffleOptions)));
+};
+$("newBtn").onclick = () => show("setup");
+$("copyBtn").onclick = async () => {
+  const lines = [exam.title, ""];
+  qs.forEach((q,i) => {
+    lines.push(`${i+1}. ${q.question}`);
+    if (q.type==="mcq") q.options.forEach((o,j)=>lines.push(`   ${"ABCDE"[j]}) ${o}`));
+    if (q.type==="tf") lines.push("   True / False");
+    lines.push("");
+  });
+  lines.push("ANSWER KEY");
+  qs.forEach((q,i) => lines.push(`${i+1}. ${answerText(q,q.answer)}${q.explanation? " — "+q.explanation:""}`));
+  try{ await navigator.clipboard.writeText(lines.join("\n")); $("copyBtn").textContent = "Copied ✓"; }
+  catch(e){ $("copyBtn").textContent = "Copy blocked"; }
+  setTimeout(()=>$("copyBtn").textContent="Copy exam + key", 2000);
+};
+})();
+</script>
+</body>
+</html>

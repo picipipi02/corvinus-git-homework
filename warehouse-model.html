@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clothing warehouse – 3D layout model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#22211f; --muted:#6f6a5f; --line:#ddd8cc; --paper:#faf9f6; --bg:#f3f1ec; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif}
+  .app{display:grid;grid-template-columns:370px 1fr;height:100vh}
+  aside{overflow-y:auto;background:var(--paper);border-right:1px solid var(--line);padding:22px 22px 40px}
+  .eyebrow{font:500 11px/1.2 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  h1{font-size:23px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em}
+  .sub{font-size:13.5px;color:var(--muted);margin:0 0 12px;line-height:1.45}
+  .chain{font:400 12px/1.55 "IBM Plex Mono",monospace;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0 0 14px;color:#3a3833}
+  h2{font:500 11px/1.2 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
+  .row{display:flex;gap:6px;flex-wrap:wrap}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+  .seg button{border:0;background:none;padding:7px 12px;font:500 13px "IBM Plex Sans";color:var(--ink);cursor:pointer}
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button.on{background:var(--ink);color:#fff}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font:500 13px "IBM Plex Sans";cursor:pointer;color:var(--ink)}
+  .btn:hover{border-color:#bdb6a6}
+  .toggles{display:flex;gap:14px;margin-top:10px;font-size:13px}
+  .toggles label{display:flex;align-items:center;gap:5px;cursor:pointer}
+  ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+  ol.steps button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:1px solid transparent;background:none;border-radius:8px;padding:7px 8px;font:400 13.5px "IBM Plex Sans";color:var(--ink);cursor:pointer}
+  ol.steps button:hover{background:#f0ede6}
+  ol.steps button.on{background:#fff;border-color:var(--line);font-weight:500}
+  .num{flex:none;width:22px;height:22px;border-radius:50%;color:#fff;font:600 12px/22px "IBM Plex Mono";text-align:center}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-top:10px;font-size:13.5px;line-height:1.5}
+  .card h3{margin:0 0 5px;font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .card p{margin:0}
+  .card .nav{display:flex;justify-content:space-between;margin-top:10px}
+  .card .nav button{border:0;background:none;color:var(--muted);font:500 12.5px "IBM Plex Sans";cursor:pointer;padding:2px 0}
+  .card .nav button:hover{color:var(--ink)}
+  dl.figs{display:grid;grid-template-columns:1fr auto;gap:5px 12px;margin:0;font-size:13.5px}
+  dl.figs dt{color:var(--muted)}
+  dl.figs dd{margin:0;font-family:"IBM Plex Mono";font-size:13px;text-align:right}
+  ul.notes{margin:0;padding-left:17px;font-size:13px;line-height:1.5;color:#3a3833}
+  ul.notes li{margin-bottom:6px}
+  ul.notes b{font-weight:600;color:var(--ink)}
+  table.qa{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.4}
+  table.qa td{border-top:1px solid #ece8df;padding:6px 4px;vertical-align:top}
+  table.qa td:first-child{font-weight:500;white-space:nowrap;padding-right:10px}
+  .stage{position:relative;overflow:hidden;min-height:300px}
+  .stage canvas{display:block}
+  .labels{position:absolute;top:0;left:0;pointer-events:none}
+  .lbl{font:500 12px "IBM Plex Sans";background:rgba(255,255,255,.93);border:1px solid #d6d0c3;border-radius:6px;padding:3px 8px 3px 4px;white-space:nowrap;display:flex;align-items:center;gap:6px;box-shadow:0 1px 3px rgba(0,0,0,.08);transition:transform .2s}
+  .lbl .num{width:18px;height:18px;font-size:10.5px;line-height:18px}
+  .lbl.on{transform:scale(1.12);border-color:#22211f}
+  .chip{font:600 10.5px "IBM Plex Mono";padding:2px 6px;border-radius:4px;color:#fff;white-space:nowrap}
+  .chip.light{background:rgba(255,255,255,.92);color:#3a3833;border:1px solid #d6d0c3;font-weight:500}
+  .hint{position:absolute;z-index:3;top:12px;right:14px;font-size:12px;color:var(--muted);background:rgba(250,249,246,.9);padding:5px 9px;border-radius:6px;border:1px solid var(--line)}
+  .legend{position:absolute;z-index:3;left:14px;bottom:14px;background:rgba(250,249,246,.94);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:12px;display:grid;grid-template-columns:auto auto;gap:5px 14px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .sw{width:14px;height:10px;border-radius:2px;display:inline-block}
+  .dash{width:16px;height:0;border-top:2px dashed #c99700;display:inline-block}
+  .footnote{font-size:11.5px;color:var(--muted);margin-top:24px;line-height:1.45}
+  @media (max-width:820px){
+    .app{grid-template-columns:1fr;grid-template-rows:56vh auto;height:auto}
+    .stage{order:-1;height:56vh}
+    aside{border-right:0;border-top:1px solid var(--line)}
+    .legend{display:none}
+    .hint{font-size:11px}
+  }
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="eyebrow">LDM · Warehouse design</div>
+    <h1>Clothing warehouse</h1>
+    <p class="sub">3D model of our team sketch. Goods arrive already palletised and move straight through the building: in on the west wall, out on the east wall.</p>
+    <div class="chain">Truck → forklift → pallet flow racks → side loader → pallet racks → side loader → unboxing → conveyor → trucking station → forklift → truck</div>
+
+    <div class="row">
+      <div class="seg" id="views">
+        <button data-v="3d" class="on">3D view</button>
+        <button data-v="top">Top view</button>
+      </div>
+      <button class="btn" id="reset">Reset</button>
+    </div>
+    <div class="toggles">
+      <label><input type="checkbox" id="tLabels" checked> Labels</label>
+      <label><input type="checkbox" id="tFlow" checked> Flow</label>
+      <label><input type="checkbox" id="tWalls" checked> Walls</label>
+    </div>
+
+    <h2>How goods move</h2>
+    <ol class="steps" id="steps"></ol>
+    <div class="card" id="detail"></div>
+
+    <h2>Key figures</h2>
+    <dl class="figs">
+      <dt>Footprint</dt><dd>66 × 36 m ≈ 2,376 m²</dd>
+      <dt>Clear height</dt><dd>10 m</dd>
+      <dt>Doors</dt><dd>3 in · 3 out</dd>
+      <dt>Pallet rack positions</dt><dd>≈ 672</dd>
+      <dt>Pallet flow buffer</dt><dd>2 blocks · 8 lanes</dd>
+      <dt>Unboxing stations</dt><dd>2 (1 per 2 rows)</dd>
+      <dt>Conveyors / trucking stations</dt><dd>10 / 10</dd>
+    </dl>
+    <p class="footnote" style="margin-top:8px">Pallet positions = 4 rows × 7 bays × 2 sides × 4 levels × 3 pallets per 2.7 m bay.</p>
+
+    <h2>Our answers to the open questions</h2>
+    <table class="qa">
+      <tr><td>Forklift</td><td>Unloads trucks, moves pallets from S1–S3 into the flow racks, and takes full roll cages from the trucking stations to S4–S6 and onto trucks</td></tr>
+      <tr><td>AGV / AMR</td><td>Not used: side loaders and conveyors cover the internal transport</td></tr>
+      <tr><td>Side loaders</td><td>Flow racks → pallet racks (put-away), pallet racks → unboxing (retrieval)</td></tr>
+      <tr><td>Conveyor</td><td>Unboxing → 10 trucking stations</td></tr>
+      <tr><td>Picking</td><td>No item picking: whole pallets are retrieved, unpacked into boxes and sorted by conveyor</td></tr>
+      <tr><td>IT</td><td>WMS + handheld RF scanners; boxes scanned at unboxing so the conveyor routes each to the right trucking station</td></tr>
+      <tr><td>Quality check</td><td>At unboxing, while workers unpack (count, damage, labels)</td></tr>
+      <tr><td>Staff</td><td>Forklift drivers, side-loader drivers, unboxing workers, trucking-station operators</td></tr>
+    </table>
+
+    <h2>Ideas to tighten the design</h2>
+    <ul class="notes">
+      <li><b>Balance the two unboxing stations.</b> With one station per 2 rows, rows 1–2 and 3–4 need similar volumes, or one station queues while the other waits. Put fast movers (ABC "A" items) at the rack ends nearest unboxing.</li>
+      <li><b>Side loaders do double duty.</b> They handle both put-away and retrieval, so check that 3–4 trucks cover the peak hour.</li>
+      <li><b>Use the height.</b> The building is 10 m clear but the racks stop at 6.5 m. A 5th pallet level adds 25% capacity on the same floor, as long as sprinkler clearance is kept.</li>
+      <li><b>Check the truck type.</b> Side loaders are mainly for long loads. Reach trucks or VNA (turret) trucks are the usual choice for pallets in narrow aisles.</li>
+      <li><b>Add a returns area.</b> Clothing has a high return rate, so returns need their own inspect-and-restock space near receiving.</li>
+    </ul>
+
+    <h2>Assumptions</h2>
+    <ul class="notes">
+      <li>The sketch has no scale. We assume 1 grid square = 2 m, which gives 66 × 36 m.</li>
+      <li>Sizes from the sheet: pallet rack 1 × 2.7 m, 6.5 m high; flow rack 2 × 2 m, 2.5 m high.</li>
+      <li>The flow racks are pallet flow racks used as the hand-over buffer: forklifts load from the receiving side, side loaders unload from the rack side.</li>
+      <li>The 10 boxes at the conveyor ends are the trucking stations (one per truck / route); boxes are collected in roll cages there.</li>
+      <li>Shelving (0.5 × 1 m) is listed on the sheet but not drawn, so it isn't modelled.</li>
+    </ul>
+    <p class="footnote">Drag to rotate, scroll to zoom, right-drag to pan. Click a step to fly to it.</p>
+  </aside>
+
+  <div class="stage" id="stage">
+    <div class="hint">Drag to rotate · scroll to zoom · right-drag to pan</div>
+    <div class="legend">
+      <span><i class="sw" style="background:#3d7cc9"></i>Inbound door</span>
+      <span><i class="sw" style="background:#d98a1b"></i>Outbound door</span>
+      <span><i class="sw" style="background:#2f9e8f"></i>Pallet flow rack</span>
+      <span><i class="sw" style="background:#e0702b"></i>Pallet rack</span>
+      <span><i class="sw" style="background:#d64933"></i>Forklift</span>
+      <span><i class="sw" style="background:#e2b007"></i>Side loader</span>
+      <span><i class="sw" style="background:#7d8794"></i>Conveyor</span>
+      <span><i class="dash"></i>Side-loader route</span>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ---------- layout constants (metres: x = west→east, z = north→south)
+const W = 66, D = 36, OX = W/2, OZ = D/2;
+const P = (x, z) => [x - OX, z - OZ];
+const IN_DOORS = [6, 17, 28], OUT_DOORS = [8, 19, 30];
+const ROWS = [4, 12, 20, 28];                       // pallet rack row centres
+const UNBOX = [7.5, 23.5];                          // unboxing 1 (rows 1–2), unboxing 2 (rows 3–4)
+const TRUCK_ST = Array.from({length:10}, (_, i) => 4.4 + 3.1*i);   // trucking station lanes
+const CONV_END_X = 51, LANE_END_X = 58.4;
+
+// ---------- process steps
+const zones = [
+  {n:1, name:'Unloading & receiving (S1–S3)', color:'#3d7cc9', rects:[[0.4,6.6,3.5,31]], h:3, lab:[3.4,12], labY:3.6,
+   text:'Goods arrive already on pallets. Forklifts unload the trucks at the 3 inbound doors onto staging pads S1–S3, where pallets are counted, checked against the delivery note and scanned into the WMS.'},
+  {n:2, name:'Forklift → pallet flow racks', color:'#2f9e8f', rects:[[7.2,15.9,3.6,12.4],[7.2,15.9,18.6,27.4]], h:3, lab:[11.6,15.5], labY:3.4,
+   text:'Forklifts drive the pallets from S1–S3 into the flow racks, which work as the hand-over buffer. They load on the receiving (west) side, and the pallets roll by gravity to the rack side. Forklift and side-loader traffic never mix, and the buffer is automatically first-in-first-out.'},
+  {n:3, name:'Side loaders → pallet racks', color:'#e0702b', rects:[[15.8,19.4,2,30.5],[19.7,39.2,2.6,29.4]], h:7, lab:[29.5,16], labY:8,
+   text:'Side loaders take the pallets out of the flow racks, drive along the lane in front of the racks (dashed) and put them away in the 4 pallet-rack rows: 7 bays each, 4 levels up to 6.5 m, ≈ 672 pallet positions.'},
+  {n:4, name:'Side loaders → unboxing', color:'#e2b007', rects:[[38.9,40.6,2,30.5]], h:1.6, lab:[39.8,31.6], labY:1.8,
+   text:'When stock is needed, side loaders retrieve the pallet and bring it along the cross aisle at the rack ends to the unboxing station. There is one station per 2 rack rows: rows 1–2 feed Unboxing 1, rows 3–4 feed Unboxing 2.'},
+  {n:5, name:'Unboxing into boxes', color:'#8e5bb5', rects:[[40.6,45.4,4.6,10.4],[40.6,45.4,20.6,26.4]], h:2.4, lab:[43,15.5], labY:3,
+   text:'Workers unpack the pallets into boxes, check them (count, damage, labels) and put each box on the conveyor. A scan at this point tells the conveyor which trucking station the box belongs to.'},
+  {n:6, name:'Conveyors → trucking stations', color:'#5b8c3a', rects:[[45,59,3,33.4]], h:2.4, lab:[53.5,18.3], labY:3,
+   text:'Each unboxing station feeds 5 conveyors, 10 in total. Every conveyor ends in its own trucking station, one per truck or delivery route, where an operator collects the boxes into roll cages.'},
+  {n:7, name:'Forklift → dispatch (S4–S6)', color:'#d98a1b', rects:[[59,61.6,2.5,33.5],[61.8,66,5.5,32.5]], h:3, lab:[63.9,25], labY:3.8,
+   text:'Forklifts take the full roll cages to staging pads S4–S6 and load them onto the trucks at the 3 outbound doors on the east wall.'},
+];
+
+// ---------- renderer / scene
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.prepend(renderer.domElement);
+const labelR = new CSS2DRenderer();
+labelR.domElement.className = 'labels';
+stage.appendChild(labelR.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#f3f1ec');
+scene.fog = new THREE.Fog('#f3f1ec', 140, 300);
+
+const persp = new THREE.PerspectiveCamera(38, 1, 0.5, 700);
+const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 500);
+ortho.up.set(0, 0, -1);
+const HOME = {pos:new THREE.Vector3(-14, 58, 66), target:new THREE.Vector3(2, 0, 2)};
+persp.position.copy(HOME.pos);
+ortho.position.set(0, 150, 0);
+
+const cPersp = new OrbitControls(persp, renderer.domElement);
+cPersp.target.copy(HOME.target); cPersp.enableDamping = true; cPersp.maxPolarAngle = Math.PI*0.47; cPersp.minDistance = 8; cPersp.maxDistance = 220;
+const cOrtho = new OrbitControls(ortho, renderer.domElement);
+cOrtho.enableRotate = false; cOrtho.enableDamping = true; cOrtho.screenSpacePanning = true; cOrtho.enabled = false;
+let camera = persp, controls = cPersp, view = '3d';
+
+scene.add(new THREE.HemisphereLight('#ffffff', '#b9b2a4', 1.0));
+const sun = new THREE.DirectionalLight('#fff7ea', 1.7);
+sun.position.set(-30, 70, 35); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, {left:-55, right:55, top:45, bottom:-45, near:1, far:220});
+sun.shadow.bias = -0.0004;
+scene.add(sun);
+
+// ---------- helpers
+const M = (c, o={}) => new THREE.MeshStandardMaterial({color:c, roughness:.82, metalness:0, ...o});
+const geoCache = {};
+const G = (w,h,d) => geoCache[`${w}|${h}|${d}`] ||= new THREE.BoxGeometry(w,h,d);
+function box(w,h,d,mat,x,y,z,parent=scene,shadow=true){
+  const m = new THREE.Mesh(G(w,h,d), mat); const [X,Z] = P(x,z);
+  m.position.set(X,y,Z); m.castShadow = shadow; m.receiveShadow = true; parent.add(m); return m;
+}
+// local box (coordinates relative to a group, no page offset)
+function lbox(w,h,d,mat,x,y,z,parent){ const m = new THREE.Mesh(G(w,h,d), mat); m.position.set(x,y,z); m.castShadow = true; parent.add(m); return m; }
+function label(html, x, y, z, cls='lbl'){
+  const el = document.createElement('div'); el.className = cls; el.innerHTML = html;
+  const o = new CSS2DObject(el); const [X,Z] = P(x,z); o.position.set(X,y,Z); scene.add(o); return o;
+}
+let seed = 7; const rnd = () => { seed = (seed*16807) % 2147483647; return (seed-1)/2147483646; };
+
+const mat = {
+  floor:M('#e9e6de'), ground:M('#d9d4c8'), wall:M('#cfd6dc',{transparent:true,opacity:.16,depthWrite:false}),
+  pBase:M('#9c7a4f'), carton:M('#cfae7b'), upright:M('#2f5d8a',{metalness:.3,roughness:.5}), beam:M('#e0702b',{metalness:.2,roughness:.5}),
+  flow:M('#2f9e8f',{metalness:.3,roughness:.5}), roller:M('#9fb7b2',{metalness:.3,roughness:.5}), belt:M('#7d8794',{roughness:.6}),
+  yellow:M('#e2b007',{roughness:.55}), red:M('#d64933',{roughness:.55}), dark:M('#2e2d2a'), steel:M('#55595e',{metalness:.5,roughness:.4}),
+  person:M('#3b3a36'), skin:M('#e0b896'), unbox:M('#cdbbe0'), station:M('#c9dcb9'), screen:M('#1d2733',{roughness:.3}),
+  cage:M('#5b8c3a',{transparent:true,opacity:.22,depthWrite:false}), trailer:M('#f4f3ef'), chassis:M('#3a3a3a'),
+  inDoor:M('#3d7cc9'), outDoor:M('#d98a1b'),
+};
+const cartonColors = ['#4f6d8f','#7a8ea3','#a3b3c2','#56627a','#8d6e8c','#c2a27c'].map(c => M(c));
+
+// ---------- vehicles (built along +x = forward)
+function makeForklift(){
+  const g = new THREE.Group();
+  lbox(1.5,.9,1.0,mat.red,-.25,.7,0,g); lbox(.5,.6,.95,mat.dark,-.95,.75,0,g);
+  lbox(.08,2.0,.08,mat.steel,-.6,1.95,.42,g); lbox(.08,2.0,.08,mat.steel,-.6,1.95,-.42,g); lbox(1.0,.06,.95,mat.dark,-.2,2.0,0,g);
+  lbox(.1,2.1,.1,mat.steel,.55,1.15,.32,g); lbox(.1,2.1,.1,mat.steel,.55,1.15,-.32,g);
+  lbox(1.0,.05,.12,mat.steel,1.1,.12,.25,g); lbox(1.0,.05,.12,mat.steel,1.1,.12,-.25,g);
+  return g;
+}
+function makeSideLoader(){
+  const g = new THREE.Group();
+  lbox(2.8,.75,1.5,mat.yellow,0,.55,0,g); lbox(.85,1.2,1.0,mat.dark,-1.05,1.5,-.15,g);
+  lbox(.1,3.6,.1,mat.steel,-.2,2.2,.68,g); lbox(.1,3.6,.1,mat.steel,.7,2.2,.68,g);
+  return g;
+}
+function makePallet(h=1.0, cMat=mat.carton){
+  const g = new THREE.Group();
+  lbox(1.2,.14,.8,mat.pBase,0,.07,0,g); lbox(1.12,h,.76,cMat,0,.14+h/2,0,g);
+  return g;
+}
+function place(obj,x,z,y=0,rot=0){ const [X,Z]=P(x,z); obj.position.set(X,y,Z); obj.rotation.y = rot; scene.add(obj); return obj; }
+
+// ---------- floor, grid, walls
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400,400), mat.ground);
+ground.rotation.x = -Math.PI/2; ground.position.y = -0.22; ground.receiveShadow = true; scene.add(ground);
+box(W,0.2,D,mat.floor,W/2,-0.1,D/2,scene,false);
+{
+  const g=[]; for(let x=0;x<=W;x+=2) g.push(x-OX,.012,-OZ,x-OX,.012,OZ); for(let z=0;z<=D;z+=2) g.push(-OX,.012,z-OZ,OX,.012,z-OZ);
+  const gg=new THREE.BufferGeometry(); gg.setAttribute('position',new THREE.Float32BufferAttribute(g,3));
+  scene.add(new THREE.LineSegments(gg,new THREE.LineBasicMaterial({color:'#d4cfc4'})));
+}
+const walls = new THREE.Group(); scene.add(walls);
+[[W,10,.3,W/2,5,0],[W,10,.3,W/2,5,D],[.3,10,D,0,5,D/2],[.3,10,D,W,5,D/2]].forEach(a => box(a[0],a[1],a[2],mat.wall,a[3],a[4],a[5],walls,false));
+{
+  const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W,10,D)), new THREE.LineBasicMaterial({color:'#a39d8f'}));
+  e.position.set(0,5,0); walls.add(e);
+}
+
+// ---------- doors + trucks
+function truck(x, z, dir, cabMat){
+  const g = new THREE.Group(); scene.add(g);
+  box(10,3.4,2.5,mat.trailer,x+dir*5.6,2.65,z,g);
+  box(12.4,.45,2.2,mat.chassis,x+dir*6.6,.7,z,g);
+  box(2.3,2.9,2.5,cabMat,x+dir*12,2.0,z,g);
+  box(.06,1,2.2,mat.screen,x+dir*13.16,2.7,z,g);
+  for (const wx of [x+dir*2.2, x+dir*3.6, x+dir*11.6]) for (const s of [-1,1]) {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.3,16), mat.chassis);
+    const [X,Z]=P(wx, z+s*1.05); w.position.set(X,.45,Z); w.rotation.x=Math.PI/2; g.add(w);
+  }
+}
+IN_DOORS.forEach((z,i)=>{ box(.45,4.5,3.6,mat.inDoor,0,2.25,z); truck(0,z,-1,mat.inDoor); label(`<span class="chip" style="background:#3d7cc9">IN ${i+1}</span>`,-1.5,5.3,z,'');});
+OUT_DOORS.forEach((z,i)=>{ box(.45,4.5,3.6,mat.outDoor,W,2.25,z); truck(W,z,1,mat.outDoor); label(`<span class="chip" style="background:#d98a1b">OUT ${i+1}</span>`,W+1.5,5.3,z,'');});
+
+// ---------- staging pads S1–S6
+function pad(x0,z0,w,d,color,name){
+  const m = M(color,{transparent:true,opacity:.35,depthWrite:false});
+  box(w,.03,d,m,x0+w/2,.02,z0+d/2,scene,false);
+  const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(w,.03,d)), new THREE.LineBasicMaterial({color}));
+  const [X,Z]=P(x0+w/2,z0+d/2); e.position.set(X,.03,Z); scene.add(e);
+  label(`<span class="chip" style="background:${color}">${name}</span>`, x0+w/2, .6, z0+.6, '');
+}
+[[1.2,4],[1.2,15],[1.2,26]].forEach(([x,z],i)=>{ pad(x,z,4.2,4,'#3d7cc9',`S${i+1}`); place(makePallet(1.1),x+1.3,z+1.6); place(makePallet(1.0),x+2.9,z+1.6); place(makePallet(.9),x+1.3,z+2.8); });
+[[62,28,'S4'],[62,17,'S5'],[62,6,'S6']].forEach(([x,z,n])=>{ pad(x,z,3.6,4,'#d98a1b',n);
+  for (const [dx,dz] of [[1,1.4],[2.4,1.4],[1,2.8]]) { box(.8,1.6,.75,mat.cage,x+dx,.82,z+dz,scene,false); box(.7,1.1,.65,cartonColors[((dx*3+dz)|0)%6],x+dx,.6,z+dz); }
+});
+
+// ---------- pallet flow racks (2 blocks × 4 lanes × 4 units of 2 m, 2 levels)
+const FLOW_LANES = [[5,7,9,11],[20,22,24,26]];
+for (const lanes of FLOW_LANES){
+  const z0 = lanes[0]-1, x0 = 7.6;
+  for (let i=0;i<=4;i++) for (let k=0;k<=4;k++) box(.08,2.5,.08,mat.flow,x0+i*2,1.25,z0+k*2);
+  for (const lz of lanes) for (const y of [.22,1.32]){
+    const bed = box(8,.06,1.6,mat.roller,x0+4,y,lz); bed.rotation.z = -0.025;
+    for (let p=0;p<6;p++){ if (rnd()>.7) continue;
+      const px = x0+.7+p*1.32; place(makePallet(.85, rnd()>.5?mat.carton:cartonColors[5]), px, lz, y+.06-0.025*(px-x0-4)); }
+  }
+}
+label(`<span class="chip light">◀ forklift loads</span>`, 7.0, 3.1, 3.2, '');
+label(`<span class="chip light">side loader unloads ▶</span>`, 16.4, 3.1, 3.2, '');
+
+// ---------- pallet racks (instanced)
+{
+  const x0=20, bays=7, bay=2.7, levels=[1.55,3.15,4.75,6.35], palY=[0,1.62,3.22,4.82];
+  const faces = zc => [zc-1.1,zc-.1,zc+.1,zc+1.1];
+  const up = new THREE.InstancedMesh(G(.09,6.5,.09), mat.upright, ROWS.length*(bays+1)*4);
+  const bm = new THREE.InstancedMesh(G(bay,.12,.06), mat.beam, ROWS.length*bays*levels.length*4);
+  const maxP = ROWS.length*bays*2*palY.length*3;
+  const pb = new THREE.InstancedMesh(G(.8,.14,1.2), mat.pBase, maxP);
+  const pl = new THREE.InstancedMesh(G(.74,1.18,1.1), M('#ffffff'), maxP);
+  const o = new THREE.Object3D(); let iu=0, ib=0, ip=0; const col = new THREE.Color();
+  for (const zc of ROWS){
+    for (let i=0;i<=bays;i++) for (const fz of faces(zc)){ const [X,Z]=P(x0+i*bay,fz); o.position.set(X,3.25,Z); o.updateMatrix(); up.setMatrixAt(iu++,o.matrix); }
+    for (let i=0;i<bays;i++){
+      for (const y of levels) for (const fz of faces(zc)){ const [X,Z]=P(x0+i*bay+bay/2,fz); o.position.set(X,y,Z); o.updateMatrix(); bm.setMatrixAt(ib++,o.matrix); }
+      for (const side of [-1,1]) for (const y of palY) for (let k=0;k<3;k++){
+        if (rnd() > .78) continue;
+        const [X,Z]=P(x0+i*bay+.45+k*.9, zc+side*.6);
+        o.position.set(X,y+.07,Z); o.updateMatrix(); pb.setMatrixAt(ip,o.matrix);
+        o.position.set(X,y+.14+.59,Z); o.updateMatrix(); pl.setMatrixAt(ip,o.matrix);
+        col.set('#cfae7b').offsetHSL(0,(rnd()-.5)*.08,(rnd()-.5)*.1); pl.setColorAt(ip,col); ip++;
+      }
+    }
+  }
+  pb.count = pl.count = ip;
+  for (const m of [up,bm,pb,pl]){ m.castShadow = true; m.receiveShadow = true; scene.add(m); }
+  ROWS.forEach((zc,i)=> label(`<span class="chip light">Row ${i+1}</span>`, 19.2, 7.2, zc, ''));
+}
+// parked vehicles
+{ const s = place(makeSideLoader(), 31, 16.2); const p = makePallet(1.0); p.position.set(.25,3.3,-1.3); s.add(p); }
+place(makeForklift(), 5.6, 12.6, 0, Math.PI/2);
+place(makeForklift(), 60.3, 1.6, 0, Math.PI);
+
+// ---------- people
+function person(x,z){
+  const b = new THREE.Mesh(new THREE.CapsuleGeometry(.24,.95,4,10), mat.person); const [X,Z]=P(x,z);
+  b.position.set(X,.72,Z); b.castShadow=true; scene.add(b);
+  const h = new THREE.Mesh(new THREE.SphereGeometry(.17,14,10), mat.skin); h.position.set(X,1.62,Z); h.castShadow=true; scene.add(h);
+}
+
+// ---------- unboxing stations (1 per 2 rack rows)
+UNBOX.forEach((zc,i)=>{
+  box(4,.9,5,mat.unbox,43,.45,zc);
+  place(makePallet(.8), 42.3, zc-1.2, .9);
+  box(.6,.4,.5,cartonColors[2],43.6,1.1,zc+.4); box(.6,.4,.5,cartonColors[0],43.6,1.1,zc+1.3); box(.6,.4,.5,cartonColors[3],42.6,1.1,zc+1.5);
+  person(41.1,zc+1.6); person(44.4,zc-2.9); person(41.1,zc-.6);
+  label(`<span class="chip" style="background:#8e5bb5">Unboxing ${i+1} · rows ${i*2+1}–${i*2+2}</span>`, 43, 2.2, zc+(i?3.2:-3.2), '');
+});
+
+// ---------- conveyors: unboxing → trucking stations
+function convCurve(z0, z1){
+  const c = new THREE.CubicBezierCurve(new THREE.Vector2(45,z0), new THREE.Vector2(48,z0), new THREE.Vector2(48,z1), new THREE.Vector2(CONV_END_X,z1));
+  return c.getPoints(18).concat([new THREE.Vector2(LANE_END_X,z1)]);
+}
+function belt(pts){
+  for (let i=0;i<pts.length-1;i++){
+    const p=pts[i], q=pts[i+1], len=p.distanceTo(q)+.03;
+    const s = box(len,.1,.55,mat.belt,(p.x+q.x)/2,.85,(p.y+q.y)/2,scene,false); s.rotation.y = -Math.atan2(q.y-p.y,q.x-p.x);
+  }
+}
+const convStart = (i) => UNBOX[i<5?0:1] + ((i%5)-2)*.95;
+TRUCK_ST.forEach((sz,i)=>{
+  belt(convCurve(convStart(i), sz));
+  // trucking station: accumulation end, roll cages, operator, scanner screen
+  const m = M('#5b8c3a',{transparent:true,opacity:.16,depthWrite:false}); box(8,.03,2.6,m,55,.02,sz+.2,scene,false);
+  for (const cx of [54.2,55.8,57.4]){
+    box(.8,1.6,.75,mat.cage,cx,.82,sz+.95,scene,false);
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(G(.8,1.6,.75)), new THREE.LineBasicMaterial({color:'#4c7a2e'}));
+    const [X,Z]=P(cx,sz+.95); e.position.set(X,.82,Z); scene.add(e);
+    const fill = .25 + rnd()*1.1; box(.7,fill,.65,cartonColors[(i+Math.round(cx))%6],cx,.08+fill/2,sz+.95);
+  }
+  box(.05,.4,.55,mat.screen,52.2,1.25,sz-.55);
+  person(53.3,sz-.85);
+  label(`<span class="chip" style="background:#5b8c3a">T${i+1}</span>`, 58.9, 1.3, sz, '');
+});
+
+// ---------- side-loader routes (dashed)
+{
+  const dm = new THREE.LineDashedMaterial({color:'#c99700', dashSize:1.1, gapSize:.7});
+  [[[17.6,2],[17.6,30.5]],[[39.8,2],[39.8,30.5]],...ROWS.slice(0,3).map(z=>[[19.5,z+4],[39.8,z+4]])].forEach(seg=>{
+    const pts = seg.map(([x,z])=>{const [X,Z]=P(x,z); return new THREE.Vector3(X,.04,Z);});
+    const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), dm); l.computeLineDistances(); scene.add(l);
+  });
+}
+
+// ---------- zone labels
+const zLabels = zones.map(z => label(`<span class="num" style="background:${z.color}">${z.n}</span>${z.name}`, z.lab[0], z.labY, z.lab[1]));
+
+// ---------- flow animation (legs: vehicle + load)
+function route({zin, lane, aisle, u, t, zout}){
+  const uz = UNBOX[u], sz = TRUCK_ST[t];
+  const conv = convCurve(convStart(t), sz).map(v=>[v.x,v.y]);
+  return [
+    {veh:'fork', load:'pal', pts:[[-12,zin],[0,zin],[3.4,zin],[6.2,lane],[7.4,lane]]},
+    {veh:null,   load:'pal', y:.3,  pts:[[7.4,lane],[15.8,lane]]},
+    {veh:'side', load:'pal', pts:[[15.8,lane],[17.6,lane],[17.6,aisle],[33,aisle],[39.8,aisle],[39.8,uz],[41.2,uz]]},
+    {veh:null,   load:'pal', y:.9,  pts:[[41.2,uz],[42.8,uz]]},
+    {veh:null,   load:'box', y:.92, pts:[[42.8,uz],...conv]},
+    {veh:'fork', load:'box', pts:[[LANE_END_X,sz],[60.3,sz],[60.3,zout],[63.8,zout],[66,zout],[78,zout]]},
+  ];
+}
+const routes = [
+  route({zin:6,  lane:7,  aisle:8,  u:0, t:1, zout:8}),
+  route({zin:17, lane:11, aisle:16, u:0, t:4, zout:19}),
+  route({zin:28, lane:26, aisle:24, u:1, t:8, zout:30}),
+  route({zin:17, lane:20, aisle:24, u:1, t:5, zout:19}),
+].map(legs => {
+  const v=[], seg=[];
+  legs.forEach(L => L.pts.forEach((p,k)=>{ if (v.length && k===0) return; v.push(new THREE.Vector2(p[0],p[1])); if (v.length>1) seg.push(L); }));
+  // first point of each leg after the first is skipped, so each segment belongs to the leg that owns its end point
+  const cum=[0]; for (let i=1;i<v.length;i++) cum.push(cum[i-1]+v[i].distanceTo(v[i-1]));
+  return {v, seg, cum, len:cum[cum.length-1]};
+});
+const flowGroup = new THREE.Group(); scene.add(flowGroup);
+const boxMat = M('#c03b6b');
+const markers = [];
+routes.forEach((r,ri)=>{
+  for (let k=0;k<3;k++){
+    const g = new THREE.Group();
+    const fork = makeForklift(), side = makeSideLoader(), pal = makePallet(.95), bx = new THREE.Mesh(G(.5,.38,.45), boxMat);
+    bx.castShadow = true; g.add(fork, side, pal, bx); flowGroup.add(g);
+    markers.push({g, fork, side, pal, bx, r, off:(k/3 + ri*.083)%1});
+  }
+});
+function posOn(r,d){
+  let i=1; while(i<r.cum.length-1 && r.cum[i]<d) i++;
+  const t=(d-r.cum[i-1])/(r.cum[i]-r.cum[i-1]||1), a=r.v[i-1], b=r.v[i];
+  return {x:a.x+(b.x-a.x)*t, z:a.y+(b.y-a.y)*t, ang:Math.atan2(b.y-a.y,b.x-a.x), leg:r.seg[i-1]};
+}
+const SPEED = 5;
+function updateFlow(t){
+  for (const m of markers){
+    const d = ((t*SPEED/m.r.len + m.off)%1)*m.r.len, s = posOn(m.r,d), L = s.leg;
+    const [X,Z]=P(s.x,s.z); m.g.position.set(X,0,Z); m.g.rotation.y = -s.ang;
+    m.fork.visible = L.veh==='fork'; m.side.visible = L.veh==='side';
+    m.pal.visible = L.load==='pal'; m.bx.visible = L.load==='box';
+    const item = L.load==='pal' ? m.pal : m.bx;
+    if (L.veh==='fork'){ item.position.set(1.1, L.load==='pal' ? .16 : .35, 0); }
+    else if (L.veh==='side'){ item.position.set(.25, .93, 0); }
+    else { item.position.set(0, L.load==='pal' ? L.y : L.y+.19, 0); }
+  }
+}
+
+// ---------- highlight + UI
+const hl = new THREE.Group(); scene.add(hl);
+let active = -1, anim = null;
+const stepsEl = document.getElementById('steps'), detail = document.getElementById('detail');
+zones.forEach((z,i)=>{
+  const li = document.createElement('li'); const b = document.createElement('button');
+  b.innerHTML = `<span class="num" style="background:${z.color}">${z.n}</span>${z.name}`;
+  b.onclick = () => select(i); li.appendChild(b); stepsEl.appendChild(li);
+});
+function renderDetail(){
+  if (active<0){ detail.innerHTML = `<h3>Click a step</h3><p>Each step highlights its area and moves the camera there. With <b>Flow</b> on, you can follow the goods: red forklifts carry pallets in and roll cages out, yellow side loaders move pallets between the racks, and pink boxes ride the conveyors after unboxing.</p><div class="nav"><span></span><button data-d="1">Start the walk-through →</button></div>`; }
+  else { const z=zones[active]; detail.innerHTML = `<h3><span class="num" style="background:${z.color}">${z.n}</span>${z.name}</h3><p>${z.text}</p><div class="nav"><button data-d="-1" ${active===0?'style="visibility:hidden"':''}>← Previous</button><button data-d="1" ${active===zones.length-1?'style="visibility:hidden"':''}>Next →</button></div>`; }
+  detail.querySelectorAll('[data-d]').forEach(b => b.onclick = () => select(Math.max(0,Math.min(zones.length-1, active + +b.dataset.d))));
+}
+function select(i){
+  active = i;
+  [...stepsEl.querySelectorAll('button')].forEach((b,k)=>b.classList.toggle('on',k===i));
+  zLabels.forEach((o,k)=>o.element.classList.toggle('on',k===i));
+  hl.clear();
+  const z = zones[i]; let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;
+  for (const [a,b,c,d] of z.rects){
+    const m = new THREE.Mesh(G(b-a,z.h,d-c), new THREE.MeshBasicMaterial({color:z.color,transparent:true,opacity:.16,depthWrite:false}));
+    const [X,Z]=P((a+b)/2,(c+d)/2); m.position.set(X,z.h/2,Z); hl.add(m);
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(G(b-a,z.h,d-c)), new THREE.LineBasicMaterial({color:z.color}));
+    e.position.copy(m.position); hl.add(e);
+    x0=Math.min(x0,a); x1=Math.max(x1,b); z0=Math.min(z0,c); z1=Math.max(z1,d);
+  }
+  const [cx,cz]=P((x0+x1)/2,(z0+z1)/2), size=Math.max(x1-x0,z1-z0);
+  const target = new THREE.Vector3(cx,0,cz);
+  if (view==='3d'){
+    const dir = persp.position.clone().sub(cPersp.target).normalize();
+    const dist = Math.min(95, Math.max(28, size*1.25+16));
+    flyTo(target, target.clone().add(dir.multiplyScalar(dist)));
+  } else {
+    flyTo(target, null, Math.max(1, Math.min(3, 70/(size+14))));
+  }
+  renderDetail();
+}
+function flyTo(target, pos, zoom){
+  anim = {t:0, fromT:controls.target.clone(), toT:target, fromP:camera.position.clone(), toP:pos, fromZ:ortho.zoom, toZ:zoom};
+}
+function resetView(){
+  active=-1; hl.clear(); zLabels.forEach(o=>o.element.classList.remove('on'));
+  [...stepsEl.querySelectorAll('button')].forEach(b=>b.classList.remove('on'));
+  if (view==='3d') flyTo(HOME.target.clone(), HOME.pos.clone()); else flyTo(new THREE.Vector3(0,0,0), null, 1);
+  renderDetail();
+}
+document.getElementById('reset').onclick = resetView;
+document.querySelectorAll('#views button').forEach(b => b.onclick = () => setView(b.dataset.v));
+function setView(v){
+  view = v; anim = null;
+  document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  const isTop = v==='top';
+  camera = isTop ? ortho : persp; controls = isTop ? cOrtho : cPersp;
+  cPersp.enabled = !isTop; cOrtho.enabled = isTop;
+  if (isTop){ const t=cPersp.target; ortho.position.set(t.x,150,t.z); cOrtho.target.set(t.x,0,t.z); ortho.zoom=1; ortho.updateProjectionMatrix(); }
+  walls.visible = isTop ? false : document.getElementById('tWalls').checked;
+  resize();
+}
+document.getElementById('tLabels').onchange = e => { labelR.domElement.style.display = e.target.checked ? '' : 'none'; };
+document.getElementById('tFlow').onchange = e => { flowGroup.visible = e.target.checked; };
+document.getElementById('tWalls').onchange = e => { walls.visible = e.target.checked && view==='3d'; };
+
+// ---------- resize + loop
+function resize(){
+  const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
+  renderer.setSize(w,h); labelR.setSize(w,h);
+  persp.aspect = w/h; persp.updateProjectionMatrix();
+  const a = w/h, half = Math.max(46/2, 96/2/a);
+  Object.assign(ortho,{left:-half*a,right:half*a,top:half,bottom:-half}); ortho.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+resize(); renderDetail();
+
+const clock = new THREE.Clock();
+function loop(){
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  if (anim){
+    anim.t = Math.min(1, anim.t + dt/0.9); const e = 1-Math.pow(1-anim.t,3);
+    controls.target.lerpVectors(anim.fromT, anim.toT, e);
+    if (anim.toP) camera.position.lerpVectors(anim.fromP, anim.toP, e);
+    if (view==='top'){ camera.position.x = controls.target.x; camera.position.z = controls.target.z; if (anim.toZ){ ortho.zoom = anim.fromZ+(anim.toZ-anim.fromZ)*e; ortho.updateProjectionMatrix(); } }
+    if (anim.t>=1) anim=null;
+  }
+  hl.children.forEach(c => { if (c.isMesh) c.material.opacity = .12 + .08*Math.sin(t*3); });
+  if (flowGroup.visible) updateFlow(t);
+  controls.update();
+  renderer.render(scene, camera); labelR.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
