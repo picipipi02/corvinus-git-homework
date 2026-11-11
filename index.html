@@ -1,0 +1,364 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flora Schubert | My Digital Garden</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#070b18;color:white;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,#5522aa55,transparent 45%),radial-gradient(ellipse at 80% 80%,#0077ff44,transparent 45%);pointer-events:none;animation:glow 8s ease-in-out infinite alternate}
+@keyframes glow{to{filter:hue-rotate(55deg);transform:scale(1.15)}}
+nav{position:relative;display:flex;justify-content:space-between;align-items:center;padding:30px 8%;font-size:14px}
+.logo{font-size:22px;font-weight:900;letter-spacing:2px}
+.logo span{color:#a78bfa}
+nav a{color:#aaa;text-decoration:none}
+main{position:relative;max-width:950px;margin:80px auto;padding:25px;text-align:center}
+.tag{display:inline-block;padding:9px 18px;border:1px solid #a78bfa66;border-radius:30px;color:#c4b5fd;background:#a78bfa18;font-size:13px}
+h1{font-size:clamp(50px,9vw,105px);letter-spacing:-5px;line-height:1.05;margin:30px 0}
+.gradient{background:linear-gradient(90deg,#c084fc,#60a5fa,#2dd4bf);background-clip:text;-webkit-background-clip:text;color:transparent}
+.subtitle{color:#9ca3af;font-size:19px;line-height:1.7;max-width:570px;margin:25px auto}
+.buttons{display:flex;justify-content:center;gap:15px;margin:40px 0;flex-wrap:wrap}
+button,a.btn{border:1px solid #555;color:white;padding:15px 28px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;text-decoration:none;background:#ffffff10;transition:.3s}
+button:hover,a.btn:hover{transform:translateY(-4px);box-shadow:0 10px 35px #7c3aed55}
+.primary{background:linear-gradient(120deg,#7c3aed,#2563eb)!important;border:0!important}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:80px;text-align:left}
+.card{padding:28px;border:1px solid #ffffff20;background:#ffffff09;border-radius:20px;backdrop-filter:blur(15px);transition:.3s}
+.card:hover{transform:translateY(-8px);border-color:#a78bfa}
+.card .symbol{font-size:30px;color:#a78bfa}
+.card h3{margin:20px 0 10px}
+.card p{color:#9ca3af;line-height:1.6;font-size:14px}
+footer{position:relative;text-align:center;color:#667085;padding:70px 20px;font-size:13px}
+</style>
+
+<style>
+.fairy-avatar {
+  width: 185px;
+  height: 185px;
+  display: block;
+  margin: 0 auto 30px;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 22px #f472b680);
+  animation: floatAvatar 4s ease-in-out infinite;
+}
+@keyframes floatAvatar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+</style>
+
+
+<!-- FLORA THEME START -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+html {scroll-behavior:smooth}
+body {
+  background:linear-gradient(145deg,#fff0f6 0%,#fce2ef 30%,#e3efdc 70%,#e4d9f5 100%)!important;
+  color:#58455d!important;
+  font-family:'DM Sans',sans-serif!important;
+}
+body:before {
+  background:
+  radial-gradient(circle at 15% 20%,#ffc5dd99,transparent 38%),
+  radial-gradient(circle at 85% 40%,#aed8b499,transparent 40%),
+  radial-gradient(circle at 50% 90%,#d7b3ee88,transparent 45%)!important;
+}
+nav {z-index:5}
+.logo {font-family:'Playfair Display',serif!important;color:#936785}
+.logo span {color:#c4789c!important}
+nav a {color:#865f7f!important}
+main {margin:45px auto!important}
+h1 {
+ font-family:'Playfair Display',serif!important;
+ font-size:clamp(52px,8vw,95px)!important;
+ letter-spacing:-3px!important;
+ color:#8c6084!important;
+}
+.gradient {
+ background:linear-gradient(90deg,#db78a6,#b38ad9,#75ae87)!important;
+ background-clip:text!important;
+ -webkit-background-clip:text!important;
+ color:transparent!important;
+}
+.tag {
+ color:#a65d85!important;
+ background:#ffffff88!important;
+ border:1px solid #eab5ce!important;
+ box-shadow:0 4px 24px #d9a1bd44;
+}
+.subtitle {color:#846c83!important}
+button,a.btn {
+ background:#ffffff99!important;
+ color:#865578!important;
+ border:1px solid #e4afc8!important;
+ border-radius:30px!important;
+}
+.primary {
+ background:linear-gradient(110deg,#e89cbd,#bd98d6)!important;
+ color:white!important;
+}
+.card {
+ background:#ffffff80!important;
+ border:1px solid #fff!important;
+ box-shadow:0 12px 38px #bb91b133!important;
+ border-radius:25px!important;
+}
+.card:hover {
+ transform:translateY(-9px) rotate(-1deg)!important;
+ box-shadow:0 18px 45px #ca91b966!important;
+}
+.card h3 {color:#986485!important;font-family:'Playfair Display',serif}
+.card p {color:#8b768a!important}
+.card .symbol {color:#cf87af!important}
+footer {color:#947b90!important}
+.fairy-avatar {
+ width:195px!important;height:195px!important;
+ border:5px solid #fff7f0!important;
+ box-shadow:0 0 35px #efb6d9,0 12px 45px #b39ad055!important;
+ filter:none!important;
+}
+.modal {background:#fff1f7!important;border-color:#e8b1cc!important}
+.modal h2 {color:#a7628f!important}
+.modal p {color:#745b75!important}
+.modal input {background:white!important;color:#58455d!important}
+.modal-bg {background:#46304f99!important}
+.project-list a {color:#805b80!important;background:#ffffffbb!important}
+.fairy-petals {
+ position:fixed;inset:0;pointer-events:none;
+ overflow:hidden;z-index:2;
+}
+.petal {
+ position:absolute;top:-30px;
+ color:#dd87b0;opacity:.45;
+ animation:petalFall linear infinite;
+}
+@keyframes petalFall {
+ 0% {transform:translate(0,-40px) rotate(0deg);opacity:0}
+ 12% {opacity:.55}
+ 90% {opacity:.5}
+ 100% {transform:translate(110px,110vh) rotate(540deg);opacity:0}
+}
+@media (prefers-reduced-motion:reduce) {
+ .petal,.fairy-avatar {animation:none!important}
+}
+@media(max-width:600px) {
+ h1 {letter-spacing:-2px!important}
+ .cards {margin-top:45px!important}
+ nav {padding:22px!important}
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+ if(document.querySelector(".fairy-petals"))return;
+ const layer=document.createElement("div");
+ layer.className="fairy-petals";
+ layer.setAttribute("aria-hidden","true");
+ document.body.appendChild(layer);
+ const flowers=["✿","❀","✾","✧"];
+ for(let i=0;i<23;i++){
+  const p=document.createElement("span");
+  p.className="petal";
+  p.textContent=flowers[i%flowers.length];
+  p.style.left=((i*43+17)%100)+"%";
+  p.style.fontSize=(12+i%5*5)+"px";
+  p.style.animationDuration=(9+i%9)+"s";
+  p.style.animationDelay=-(i*1.3)+"s";
+  layer.appendChild(p);
+ }
+});
+</script>
+<!-- FLORA THEME END -->
+
+
+<style id="sf-letter-fix">
+.sf-avatar-wrap {
+  position: relative;
+  width: 195px;
+  height: 195px;
+  margin: 0 auto 30px;
+}
+.sf-avatar-wrap .fairy-avatar {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  object-fit: cover;
+}
+.sf-avatar-letters {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  font-family: Georgia, serif;
+  font-size: 75px;
+  font-weight: 900;
+  color: #fffdf8;
+  -webkit-text-stroke: 2px #633b69;
+  text-shadow: 3px 5px 2px #47284a, 0 0 18px #6b347a;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+<nav><div class="logo">MY<span>SPACE.</span></div><a href="https://github.com/picipipi02">GITHUB ↗</a></nav>
+<main>
+
+<div class="sf-avatar-wrap">
+  <img class="fairy-avatar" src="avatar.png" alt="Floral avatar">
+  <span class="sf-avatar-letters">SF</span>
+</div>
+
+<div class="tag">✦ Welcome to my digital universe</div>
+<h1>Building the<br><span class="gradient">Future.</span></h1>
+<p class="subtitle">Exploring the intersection of technology, artificial intelligence, and creativity. One project at a time.</p>
+<div class="buttons">
+<a class="btn primary" href="#" onclick="showProjects();return false">Explore My Work ↗</a>
+<button onclick="showAI()">AI Playground ✨</button>
+</div>
+<div class="cards">
+<div class="card"><div class="symbol">⌘</div><h3>Development</h3><p>Turning ideas into real applications with code and modern technology.</p></div>
+<div class="card"><div class="symbol">✧</div><h3>Artificial Intelligence</h3><p>Exploring AI, automation, intelligent agents, and the future of software.</p></div>
+<div class="card"><div class="symbol">◈</div><h3>Innovation</h3><p>Experimenting, learning, and building something new every day.</p></div>
+</div>
+
+<!-- PERSONAL PROFILE START -->
+<section id="about-flora" style="
+  margin:65px auto 35px;
+  max-width:760px;
+  padding:35px;
+  border-radius:28px;
+  background:rgba(255,255,255,0.73);
+  border:1px solid rgba(255,255,255,0.95);
+  box-shadow:0 15px 45px rgba(185,120,160,0.16);
+  text-align:left;
+  color:#755374;">
+
+  <h2 style="
+    font-family:Georgia,serif;
+    font-size:36px;
+    color:#a76b94;
+    margin-top:0;">
+    Meet Flora
+  </h2>
+
+  <h3 style="font-size:22px;color:#885a7d;">
+    Flora Schubert
+  </h3>
+
+  <p><strong>University:</strong> Corvinus University of Budapest</p>
+  <p><strong>Degree program:</strong> Advanced Supply Chain Management</p>
+  <p><strong>Year of study:</strong> Year 1</p>
+
+  <h3 style="color:#a76b94;margin-top:25px;">
+    A Little About Me
+  </h3>
+
+  <p style="line-height:1.9;">
+    Hey, my name is Flora and I just moved back from Copenhagen,
+    where I studied and worked for 4 years.
+    My goal in life is to visit as many countries and places as possible.
+    So far, I've visited 31 countries!
+  </p>
+
+  <h3 style="color:#a76b94;margin-top:25px;">
+    My Hobbies
+  </h3>
+
+  <ul style="line-height:2;font-size:16px;">
+    <li>Scuba diving</li>
+    <li>Karate</li>
+    <li>Traveling and discovering new places</li>
+  </ul>
+</section>
+<!-- PERSONAL PROFILE END -->
+
+</main>
+<footer>© 2026 · Created with curiosity and code.</footer>
+<script>
+function surprise(){
+const colors=["#a78bfa","#22d3ee","#fb7185","#34d399","#fbbf24"];
+document.querySelector(".gradient").style.backgroundImage=
+"linear-gradient(90deg,"+colors.sort(()=>Math.random()-.5).slice(0,3).join(",")+")";
+}
+</script>
+
+<style>
+.modal-bg{display:none;position:fixed;inset:0;background:#000b;
+z-index:99;align-items:center;justify-content:center;padding:20px}
+.modal{width:100%;max-width:520px;padding:32px;border-radius:22px;
+background:#151a30;border:1px solid #a78bfa66;box-shadow:0 20px 80px #0009}
+.modal h2{color:#c4b5fd;margin-top:0}
+.modal p{color:#b8c0d5;line-height:1.7}
+.modal input{width:100%;padding:14px;border-radius:10px;
+border:1px solid #555;background:#080d20;color:white;margin:12px 0}
+.modal button{margin:5px}
+.project-list{display:grid;gap:12px;margin-top:20px;text-align:left}
+.project-list a{display:block;padding:14px;color:#ddd;text-decoration:none;
+background:#ffffff10;border:1px solid #ffffff20;border-radius:12px}
+.project-list a:hover{border-color:#a78bfa}
+</style>
+
+<div class="modal-bg" id="popup">
+ <div class="modal">
+  <h2 id="modal-title">Interactive Lab</h2>
+  <div id="modal-content"></div>
+  <button onclick="closePopup()">Close ✕</button>
+ </div>
+</div>
+
+<script>
+function closePopup(){
+ document.getElementById("popup").style.display="none";
+}
+function showPopup(title,content){
+ document.getElementById("modal-title").textContent=title;
+ document.getElementById("modal-content").innerHTML=content;
+ document.getElementById("popup").style.display="flex";
+}
+function showProjects(){
+ showPopup("My Projects",`
+ <p>Explore my development workspace.</p>
+ <div class="project-list">
+ <a href="https://github.com/picipipi02" target="_blank"
+ rel="noopener noreferrer">GitHub Projects ↗</a>
+ <a href="#" onclick="showAI();return false">AI Playground →</a>
+ <a href="#" onclick="showContact();return false">Contact Panel →</a>
+ </div>`);
+}
+function showAI(){
+ showPopup("AI Playground",`
+ <p>Try the interactive technology demo.</p>
+ <input id="ai-input" placeholder="Ask about Python, Git, or AI">
+ <button class="primary" onclick="answerAI()">Ask</button>
+ <p id="ai-answer" aria-live="polite"></p>`);
+}
+function answerAI(){
+ let q=document.getElementById("ai-input").value.toLowerCase();
+ let a="This is a local demo, not a connected AI model.";
+ if(q.includes("python")) a="Python is a programming language widely used in AI and automation.";
+ else if(q.includes("git")) a="Git tracks changes to your code. GitHub hosts repositories online.";
+ else if(q.includes("ai")) a="AI systems can analyze information, generate text, and help automate tasks.";
+ document.getElementById("ai-answer").textContent=a;
+}
+function showContact(){
+ showPopup("Contact",`
+ <p>Find my development projects and connect through GitHub.</p>
+ <a class="btn primary" href="https://github.com/picipipi02"
+ target="_blank" rel="noopener noreferrer">Open GitHub ↗</a>`);
+}
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape")closePopup();
+});
+document.getElementById("popup").addEventListener("click",e=>{
+ if(e.target.id==="popup")closePopup();
+});
+</script>
+
+</body>
+</html>
+
+
